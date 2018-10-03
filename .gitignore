@@ -1,1 +1,3 @@
-skrald.txt
+build/*
+build-robot_control-Desktop-Debug/*
+qtcreator/robot_control.pro.user
