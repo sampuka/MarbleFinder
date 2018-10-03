@@ -5,6 +5,9 @@ CONFIG -= qt
 
 SOURCES += ../src/main.cpp
 
+INCLUDEPATH += ~/fuzzylite-6.0/fuzzylite/
+LIBS += -L~/fuzzylite-6.0/fuzzylite/release/bin -lfuzzylite-static
+
 CONFIG += link_pkgconfig
 PKGCONFIG += gazebo
 PKGCONFIG += opencv
