@@ -1,3 +1,6 @@
+#include "Controller.hpp"
+#include "FollowWall.hpp"
+
 #include <gazebo/gazebo_client.hh>
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/transport/transport.hh>
@@ -100,22 +103,33 @@ int main(int _argc, char **_argv) {
   // Load gazebo
   gazebo::client::setup(_argc, _argv);
 
+  // Create our controller object
+  const ControllerType type = ControllerType::FollowWall;
+  Controller *controller = nullptr;
+
   // Create our node for communication
   gazebo::transport::NodePtr node(new gazebo::transport::Node());
   node->Init();
 
-  // Listen to Gazebo topics
-  gazebo::transport::SubscriberPtr statSubscriber =
-      node->Subscribe("~/world_stats", statCallback);
+  gazebo::transport::SubscriberPtr statSubscriber;
+  gazebo::transport::SubscriberPtr poseSubscriber;
+  gazebo::transport::SubscriberPtr cameraSubscriber;
+  gazebo::transport::SubscriberPtr lidarSubscriber;
 
-  gazebo::transport::SubscriberPtr poseSubscriber =
-      node->Subscribe("~/pose/info", poseCallback);
-
-  gazebo::transport::SubscriberPtr cameraSubscriber =
-      node->Subscribe("~/pioneer2dx/camera/link/camera/image", cameraCallback);
-
-  gazebo::transport::SubscriberPtr lidarSubscriber =
-      node->Subscribe("~/pioneer2dx/hokuyo/link/laser/scan", lidarCallback);
+  //Subcriber the gazebo topics to the correct methods
+  switch (type)
+  {
+  case ControllerType::Show:
+  {
+      statSubscriber = node->Subscribe("~/world_stats", statCallback);
+      poseSubscriber = node->Subscribe("~/pose/info", poseCallback);
+      cameraSubscriber = node->Subscribe("~/pioneer2dx/camera/link/camera/image", cameraCallback);
+      lidarSubscriber = node->Subscribe("~/pioneer2dx/hokuyo/link/laser/scan", lidarCallback);
+      break;
+  }
+  default:
+      break;
+  }
 
   // Publish to the robot vel_cmd topic
   gazebo::transport::PublisherPtr movementPublisher =
