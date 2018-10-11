@@ -119,16 +119,29 @@ int main(int _argc, char **_argv) {
   //Subcriber the gazebo topics to the correct methods
   switch (type)
   {
-  case ControllerType::Show:
+  case ControllerType::FollowWall:
+  {
+      controller = new FollowWall;
+      break;
+  }
+      //Add your controllers here
+  default:
+      break;
+  }
+
+  if (type == ControllerType::Show)
   {
       statSubscriber = node->Subscribe("~/world_stats", statCallback);
       poseSubscriber = node->Subscribe("~/pose/info", poseCallback);
       cameraSubscriber = node->Subscribe("~/pioneer2dx/camera/link/camera/image", cameraCallback);
       lidarSubscriber = node->Subscribe("~/pioneer2dx/hokuyo/link/laser/scan", lidarCallback);
-      break;
   }
-  default:
-      break;
+  else
+  {
+      statSubscriber = node->Subscribe("~/world_stats", &Controller::statCallback, controller);
+      poseSubscriber = node->Subscribe("~/pose/info", &Controller::poseCallback, controller);
+      cameraSubscriber = node->Subscribe("~/pioneer2dx/camera/link/camera/image", &Controller::cameraCallback, controller);
+      lidarSubscriber = node->Subscribe("~/pioneer2dx/hokuyo/link/laser/scan", &Controller::lidarCallback, controller);
   }
 
   // Publish to the robot vel_cmd topic

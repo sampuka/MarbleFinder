@@ -6,23 +6,27 @@ Controller::~Controller()
 {
 }
 
-void Controller::statCallback()
+void Controller::statCallback(ConstWorldStatisticsPtr &msg)
 {
+    (void)msg;
     std::cout << "Un-overwritten statCallback called" << std::endl;
 }
 
-void Controller::poseCallback()
+void Controller::poseCallback(ConstPosesStampedPtr &msg)
 {
+    (void)msg;
     std::cout << "Un-overwritten poseCallback called" << std::endl;
 }
 
-void Controller::cameraCallback()
+void Controller::cameraCallback(ConstImageStampedPtr &msg)
 {
+    (void)msg;
     std::cout << "Un-overwritten cameraCallback called" << std::endl;
 }
 
-void Controller::lidarCallback()
+void Controller::lidarCallback(ConstLaserScanStampedPtr &msg)
 {
+    (void)msg;
     std::cout << "Un-overwritten lidarCallback called" << std::endl;
 }
 

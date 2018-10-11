@@ -8,25 +8,27 @@ FollowWall::FollowWall()
 }
 
 /*
-void FollowWall::statCallback()
+void FollowWall::statCallback(ConstWorldStatisticsPtr &msg)
 {
     std::cout << "Un-overwritten statCallback called" << std::endl;
 }
 */
 
 /*
-void FollowWall::poseCallback()
+void FollowWall::poseCallback(ConstPosesStampedPtr &msg)
 {
     std::cout << "Un-overwritten poseCallback called" << std::endl;
 }
 */
 
-void FollowWall::cameraCallback()
+void FollowWall::cameraCallback(ConstImageStampedPtr &msg)
 {
-    std::cout << "Un-overwritten cameraCallback called" << std::endl;
+    (void)msg;
+    std::cout << "Empty FollowWall cameraCallback called" << std::endl;
 }
 
-void FollowWall::lidarCallback()
+void FollowWall::lidarCallback(ConstLaserScanStampedPtr &msg)
 {
-    std::cout << "Un-overwritten lidarCallback called" << std::endl;
+    (void)msg;
+    std::cout << "Empty FollowWall lidarCallback called" << std::endl;
 }

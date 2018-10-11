@@ -1,6 +1,8 @@
 #ifndef CONTROLLER_HPP
 #define CONTROLLER_HPP
 
+#include <gazebo/msgs/msgs.hh>
+
 //You can freely add more controllers to this list,
 //but make sure you add the gazebo subscriber thingies
 //for your new controller
@@ -19,10 +21,10 @@ public:
 
     ControllerType getType();
 
-    virtual void statCallback();
-    virtual void poseCallback();
-    virtual void cameraCallback();
-    virtual void lidarCallback();
+    virtual void statCallback(ConstWorldStatisticsPtr &msg);
+    virtual void poseCallback(ConstPosesStampedPtr &msg);
+    virtual void cameraCallback(ConstImageStampedPtr &msg);
+    virtual void lidarCallback(ConstLaserScanStampedPtr &msg);
 
 //protected:
     ControllerType type = ControllerType::Undefined;
