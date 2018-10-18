@@ -1,0 +1,17 @@
+#include "visioncamera.h"
+
+visioncamera::visioncamera()
+{
+    
+}
+
+visioncamera::~visioncamera()
+{
+    
+}
+
+
+void visioncamera::cameracallbackfunc(ConstImageStampedPtr &msg)
+{
+    
+}
