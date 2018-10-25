@@ -1,13 +1,15 @@
 #include <gazebo/gazebo_client.hh>
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/transport/transport.hh>
-
+#include"fuzzybugcontroller.h"
 #include <opencv2/opencv.hpp>
 
 #include <iostream>
+#include<fl/Headers.h>
+#include"laserscanner.h"
 
 static boost::mutex mutex;
-
+//static LaserScanner ls;
 void statCallback(ConstWorldStatisticsPtr &_msg) {
   (void)_msg;
   // Dump the message contents to stdout.
@@ -50,54 +52,57 @@ void cameraCallback(ConstImageStampedPtr &msg) {
 }
 
 void lidarCallback(ConstLaserScanStampedPtr &msg) {
+  //  ls.parseLaserScannerMessage(msg);
+//  //  std::cout << ">> " << msg->DebugString() << std::endl;
+//  float angle_min = float(msg->scan().angle_min());
+//  //  double angle_max = msg->scan().angle_max();
+//  float angle_increment = float(msg->scan().angle_step());
 
-  //  std::cout << ">> " << msg->DebugString() << std::endl;
-  float angle_min = float(msg->scan().angle_min());
-  //  double angle_max = msg->scan().angle_max();
-  float angle_increment = float(msg->scan().angle_step());
+//  float range_min = float(msg->scan().range_min());
+//  float range_max = float(msg->scan().range_max());
 
-  float range_min = float(msg->scan().range_min());
-  float range_max = float(msg->scan().range_max());
+//  int sec = msg->time().sec();
+//  int nsec = msg->time().nsec();
 
-  int sec = msg->time().sec();
-  int nsec = msg->time().nsec();
+//  int nranges = msg->scan().ranges_size();
+//  int nintensities = msg->scan().intensities_size();
 
-  int nranges = msg->scan().ranges_size();
-  int nintensities = msg->scan().intensities_size();
+//  assert(nranges == nintensities);
 
-  assert(nranges == nintensities);
+//  int width = 400;
+//  int height = 400;
+//  float px_per_m = 200 / range_max;
 
-  int width = 400;
-  int height = 400;
-  float px_per_m = 200 / range_max;
+//  cv::Mat im(height, width, CV_8UC3);
+//  im.setTo(0);
+//  for (int i = 0; i < nranges; i++) {
+//    float angle = angle_min + i * angle_increment;
+//    float range = std::min(float(msg->scan().ranges(i)), range_max);
+//    //    double intensity = msg->scan().intensities(i);
+//    cv::Point2f startpt(200.5f + range_min * px_per_m * std::cos(angle),
+//                        200.5f - range_min * px_per_m * std::sin(angle));
+//    cv::Point2f endpt(200.5f + range * px_per_m * std::cos(angle),
+//                      200.5f - range * px_per_m * std::sin(angle));
+//    cv::line(im, startpt * 16, endpt * 16, cv::Scalar(255, 255, 255, 255), 1,
+//             cv::LINE_AA, 4);
 
-  cv::Mat im(height, width, CV_8UC3);
-  im.setTo(0);
-  for (int i = 0; i < nranges; i++) {
-    float angle = angle_min + i * angle_increment;
-    float range = std::min(float(msg->scan().ranges(i)), range_max);
-    //    double intensity = msg->scan().intensities(i);
-    cv::Point2f startpt(200.5f + range_min * px_per_m * std::cos(angle),
-                        200.5f - range_min * px_per_m * std::sin(angle));
-    cv::Point2f endpt(200.5f + range * px_per_m * std::cos(angle),
-                      200.5f - range * px_per_m * std::sin(angle));
-    cv::line(im, startpt * 16, endpt * 16, cv::Scalar(255, 255, 255, 255), 1,
-             cv::LINE_AA, 4);
+//    //    std::cout << angle << " " << range << " " << intensity << std::endl;
+//  }
+//  cv::circle(im, cv::Point(200, 200), 2, cv::Scalar(0, 0, 255));
+//  cv::putText(im, std::to_string(sec) + ":" + std::to_string(nsec),
+//              cv::Point(10, 20), cv::FONT_HERSHEY_PLAIN, 1.0,
+//              cv::Scalar(255, 0, 0));
 
-    //    std::cout << angle << " " << range << " " << intensity << std::endl;
-  }
-  cv::circle(im, cv::Point(200, 200), 2, cv::Scalar(0, 0, 255));
-  cv::putText(im, std::to_string(sec) + ":" + std::to_string(nsec),
-              cv::Point(10, 20), cv::FONT_HERSHEY_PLAIN, 1.0,
-              cv::Scalar(255, 0, 0));
-
-  mutex.lock();
-  cv::imshow("lidar", im);
-  mutex.unlock();
+//  mutex.lock();
+//  cv::imshow("lidar", im);
+//  mutex.unlock();
 }
 
 int main(int _argc, char **_argv) {
-  // Load gazebo
+
+  ConstLaserScanPtr msg;
+   LaserScannerReading ls1;
+    // Load gazebo
   gazebo::client::setup(_argc, _argv);
 
   // Create our node for communication
@@ -113,9 +118,9 @@ int main(int _argc, char **_argv) {
 
   gazebo::transport::SubscriberPtr cameraSubscriber =
       node->Subscribe("~/pioneer2dx/camera/link/camera/image", cameraCallback);
-
+LaserScanner ls;
   gazebo::transport::SubscriberPtr lidarSubscriber =
-      node->Subscribe("~/pioneer2dx/hokuyo/link/laser/scan", lidarCallback);
+      node->Subscribe("~/pioneer2dx/hokuyo/link/laser/scan",&LaserScanner::parseLaserScannerMessage,&ls);
 
   // Publish to the robot vel_cmd topic
   gazebo::transport::PublisherPtr movementPublisher =
@@ -139,32 +144,40 @@ int main(int _argc, char **_argv) {
   float dir = 0.0;
 
   // Loop
+
+
+
+  FuzzyBugController derp(&ls);
+  derp.buildController();
+  ControlOutput data;
+
   while (true) {
-    gazebo::common::Time::MSleep(10);
-
+    gazebo::common::Time::MSleep(1);
+     data = derp.getControlOutput();
     mutex.lock();
-    int key = cv::waitKey(1);
+    int key = cv::waitKey(10);
     mutex.unlock();
-
     if (key == key_esc)
       break;
 
-    if ((key == key_up) && (speed <= 1.2f))
-      speed += 0.05;
-    else if ((key == key_down) && (speed >= -1.2f))
-      speed -= 0.05;
-    else if ((key == key_right) && (dir <= 0.4f))
-      dir += 0.05;
-    else if ((key == key_left) && (dir >= -0.4f))
-      dir -= 0.05;
-    else {
-      // slow down
+//    if ((key == key_up) && (speed <= 1000.2f))
+//      speed += 0.05;
+//    else if ((key == key_down) && (speed >= -1.2f))
+//      speed -= 0.05;
+//    else if ((key == key_right) && (dir <= 0.4f))
+//      dir += 0.05;
+//    else if ((key == key_left) && (dir >= -0.4f))
+//      dir -= 0.05;
+//    else {
+//      // slow down
       //      speed *= 0.1;
       //      dir *= 0.1;
-    }
+   // }
 
     // Generate a pose
-    ignition::math::Pose3d pose(double(speed), 0, 0, 0, 0, double(dir));
+    ignition::math::Pose3d pose(double(data.speed), 0, 0, 0, 0, double(data.direction));
+  //  std::cout<<data.speed<<std::endl;
+   // std::cout<<data.direction<<std::endl;
 
     // Convert to a pose message
     gazebo::msgs::Pose msg;
