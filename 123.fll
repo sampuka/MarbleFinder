@@ -74,4 +74,4 @@ RuleBlock: mamdani
   rule: if ObsDis is close and ObsDir is centerr then SteerDirection is right
 
   rule: if ObsDis is close and ObsDir is centerl then SteerDirection is left
-  #ello this is a change
+
