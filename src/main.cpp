@@ -1,5 +1,5 @@
 #include "Controller.hpp"
-#include "FollowWall.hpp"
+#include "WorldMapper.hpp"
 
 #include <gazebo/gazebo_client.hh>
 #include <gazebo/msgs/msgs.hh>
@@ -104,7 +104,7 @@ int main(int _argc, char **_argv) {
   gazebo::client::setup(_argc, _argv);
 
   // Create our controller object
-  const ControllerType type = ControllerType::FollowWall;
+  const ControllerType type = ControllerType::WorldMapper;
   Controller *controller = nullptr;
 
   // Create our node for communication
@@ -119,9 +119,9 @@ int main(int _argc, char **_argv) {
   //Subcriber the gazebo topics to the correct methods
   switch (type)
   {
-  case ControllerType::FollowWall:
+  case ControllerType::WorldMapper:
   {
-      controller = new FollowWall;
+      controller = new WorldMapper;
       break;
   }
       //Add your controllers here
@@ -169,25 +169,34 @@ int main(int _argc, char **_argv) {
   while (true) {
     gazebo::common::Time::MSleep(10);
 
-    mutex.lock();
-    int key = cv::waitKey(1);
-    mutex.unlock();
+    if (type == ControllerType::Show)
+    {
+        mutex.lock();
+        int key = cv::waitKey(1);
+        mutex.unlock();
 
-    if (key == key_esc)
-      break;
+        if (key == key_esc)
+          break;
 
-    if ((key == key_up) && (speed <= 1.2f))
-      speed += 0.05;
-    else if ((key == key_down) && (speed >= -1.2f))
-      speed -= 0.05;
-    else if ((key == key_right) && (dir <= 0.4f))
-      dir += 0.05;
-    else if ((key == key_left) && (dir >= -0.4f))
-      dir -= 0.05;
-    else {
-      // slow down
-      //      speed *= 0.1;
-      //      dir *= 0.1;
+        if ((key == key_up) && (speed <= 1.2f))
+          speed += 0.05;
+        else if ((key == key_down) && (speed >= -1.2f))
+          speed -= 0.05;
+        else if ((key == key_right) && (dir <= 0.4f))
+          dir += 0.05;
+        else if ((key == key_left) && (dir >= -0.4f))
+          dir -= 0.05;
+        else {
+          // slow down
+          //      speed *= 0.1;
+          //      dir *= 0.1;
+        }
+    }
+    else
+    {
+        ControlOutput ctrlout = controller->getControlOutput();
+        speed = ctrlout.speed;
+        dir = ctrlout.dir;
     }
 
     // Generate a pose

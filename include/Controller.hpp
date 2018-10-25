@@ -10,8 +10,14 @@ enum class ControllerType
 {
     Undefined,
     Show,
-    FollowWall,
+    WorldMapper,
     Test
+};
+
+struct ControlOutput
+{
+    float speed;
+    float dir;
 };
 
 class Controller
@@ -25,6 +31,8 @@ public:
     virtual void poseCallback(ConstPosesStampedPtr &msg);
     virtual void cameraCallback(ConstImageStampedPtr &msg);
     virtual void lidarCallback(ConstLaserScanStampedPtr &msg);
+
+    virtual ControlOutput getControlOutput();
 
 //protected:
     ControllerType type = ControllerType::Undefined;
