@@ -26,5 +26,6 @@ HEADERS += \
 
 DISTFILES += \
     fuzzybugcontroller.fll \
-    123.fll
+    123.fll \
+    ../123.fll
 

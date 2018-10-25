@@ -152,8 +152,10 @@ LaserScanner ls;
   ControlOutput data;
 
   while (true) {
-    gazebo::common::Time::MSleep(1);
+    gazebo::common::Time::MSleep(10);
      data = derp.getControlOutput();
+    // std::cout<<"Speed"<<data.speed<<std::endl;
+    // std::cout<<"Direction"<<data.direction<<std::endl;
     mutex.lock();
     int key = cv::waitKey(10);
     mutex.unlock();

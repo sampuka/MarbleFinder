@@ -1,27 +1,27 @@
 #File: 123.fll
 Engine: ObstacleAvoidance
-InputVariable: ObstacleDirection
-  enabled: true
-  range: -2.26 2.26
-  lock-range: false
-  term: center Triangle -0.17 0 0.17
-  term: centerl Triangle 0.1 0.735 1.57
-  term: centerr Triangle -0.1 -0.735 -1.57
-  term: right Spike -1.57 -0.2 1
-  term: left Spike 1.57 0.2 1
-  term: lback Triangle 1.5 1.6 2.26
-  term: rback Triangle -1.5 -1.6 -2.26
+InputVariable: ObsDir
+ enabled: true
+ range: -2.26 2.26
+ lock-range: false
+ term: center Triangle -0.17 0 0.17
+ term: centerl Triangle 0.1 0.735 1.57
+ term: centerr Triangle -0.1 -0.735 -1.57
+ term: right Spike -1.57 -0.5 1
+ term: left Spike 1.57 0.5 1
+ term: lback Triangle 1.5 1.6 2.26
+ term: rback Triangle -1.5 -1.6 -2.26
 
-InputVariable: ObstacleDistance
-  enabled: true
-  range: 0 10
-  lock-range: false
-  term: min Ramp 0.1 0
-  term: vc Triangle  0.08  0.7 1.5
-  term: close Triangle 1.3 2.5 3.5
-  term: medium Triangle 3.3 5 6
-  term: far Triangle 5.8 7 8
-  term: vfar Ramp 7.8 10
+InputVariable: ObsDis
+ enabled: true
+ range: 0 10
+ lock-range: false
+ term: min Ramp 0.1 0
+ term: vc Triangle  0.08  0.7 1.5
+ term: close Triangle 1.3 2.5 3.5
+ term: medium Triangle 3.3 5 6
+ term: far Triangle 5.8 7 8
+ term: vfar Ramp 7.8 10
 
 OutputVariable: SteerDirection
   enabled: true
@@ -31,11 +31,11 @@ OutputVariable: SteerDirection
   defuzzifier: Centroid 100
   default: 0
   lock-previous: false
-  term: sharpright Ramp 1 1.57
-  term: right      Triangle 1.2 0.600 0
-  term: straight   Triangle -0.1 0.000 0.1
-  term: left       Triangle 0 -0.6 -1.2
-  term: sharpleft  Ramp  -1 -1.57
+  term: sharpright Ramp -1 -1.57
+  term: right      Triangle -1.2 -0.600 0
+  term: straight   Triangle -0.2 0.000 0.2
+  term: left       Triangle 0 0.6 1.2
+  term: sharpleft  Ramp  1 1.57
 
 OutputVariable: Speed
   enabled: true
@@ -55,29 +55,22 @@ RuleBlock: mamdani
   disjunction: Maximum
   implication: Minimum
   activation: General
+  rule: if ObsDis is far or ObsDis is medium or ObsDis is close or ObsDis is vc then Speed is forward
 
-rule: if ObstacleDistance is medium or ObstacleDistance is far or ObstacleDistance is close or ObstacleDistance is vc then Speed is forward
+  rule: if ObsDir is center and ObsDis is close or ObsDis is min then SteerDirection is sharpleft
 
-rule: if ObstacleDistance is min then Speed is backward
+  rule: if ObsDir is centerr and ObsDis is vc or ObsDis is min then SteerDirection is sharpleft
 
-rule: if ObstacleDirection is center and ObstacleDistance is medium or ObstacleDistance is close then SteerDirection is straight
+  rule: if ObsDir is centerl and  ObsDis is vc then SteerDirection is sharpright
 
-rule: if ObstacleDirection is right and ObstacleDistance is vc then SteerDirection is right
+  rule: if ObsDir is right and ObsDis is vc then SteerDirection is sharpright
 
-rule: if ObstacleDirection is centerr and ObstacleDistance is vc or ObstacleDirection is centerr and ObstacleDistance is medium then SteerDirection is left
+  rule: if ObsDir is left and ObsDis is vc then SteerDirection is sharpright
 
-rule: if ObstacleDirection is centerl and ObstacleDistance is vc or ObstacleDirection is centerl ObstacleDistance is medium then SteerDirection is right
+  rule: if ObsDir is centerr and ObsDis is close then SteerDirection is straight
 
-rule: if ObstacleDircetion is left and ObstacleDistance is vc then SteerDirection is left
+  rule: if ObsDir is right and ObsDis is min then SteerDirection is sharpright
 
-rule: if ObstacleDirection is lback and ObstacleDistance is close then SteerDirection is straight
+  rule: if ObsDis is close and ObsDir is centerr then SteerDirection is right
 
-rule: if ObstacleDirection is rback and ObstacleDistance is close then SteerDirection is straight
-
-rule: if ObstacleDirection is centerl and ObstacleDistance is min then SteerDirection is sharpright
-
-rule: if ObstacleDirection is centerr and ObstacleDistance is min then SteerDirection is sharpleft
-
-
-
-
+  rule: if ObsDis is close and ObsDir is centerl then SteerDirection is left
