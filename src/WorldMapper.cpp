@@ -128,7 +128,13 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
     cv::Mat worldMapShow = worldMap.clone();
     //cv::Point pos((x_pos/map_width+0.5)*width, (-y_pos/map_height+0.5)*height);
     //std::cout << x_pos << ' ' << pos << std::endl;
-    cv::circle(worldMapShow, pos, 5, robot_color, -1);
+    cv::circle(worldMapShow, pos, 5, robot_color1, -1);
+    cv::circle(worldMapShow,
+               pos + cv::Point((0.3 * std::cos(dir)/map_width)*width,
+                               (-0.3 * std::sin(dir)/map_height)*height),
+               3,
+               robot_color2,
+               -1);
 
     cv::imshow("World Map", worldMapShow);
     //cv::imshow("lidar", im);
