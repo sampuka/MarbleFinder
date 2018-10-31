@@ -6,7 +6,8 @@ CONFIG -= qt
 SOURCES += ../src/main.cpp \
     ../src/laserscanner.cpp \
     ../src/fuzzybugcontroller.cpp \
-    ../src/visioncamera.cpp
+    ../src/visioncamera.cpp \
+    ../src/brushfire.cpp
 
 CONFIG += link_pkgconfig
 PKGCONFIG += gazebo
@@ -22,7 +23,8 @@ INCLUDEPATH += ../include/
 HEADERS += \
     ../include/laserscanner.h \
     ../include/fuzzybugcontroller.h \
-    ../include/visioncamera.h
+    ../include/visioncamera.h \
+    ../include/brushfire.h
 
 DISTFILES += \
     fuzzybugcontroller.fll \

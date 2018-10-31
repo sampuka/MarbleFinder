@@ -65,13 +65,23 @@ RuleBlock: mamdani
 
   rule: if ObsDir is right and ObsDis is vc then SteerDirection is sharpright
 
-  rule: if ObsDir is left and ObsDis is vc then SteerDirection is sharpright
+  rule: if ObsDir is left and ObsDis is vc then SteerDirection is sharpleft
 
   rule: if ObsDir is centerr and ObsDis is close then SteerDirection is straight
 
   rule: if ObsDir is right and ObsDis is min then SteerDirection is sharpright
 
-  rule: if ObsDis is close and ObsDir is centerr then SteerDirection is right
+  rule: if ObsDir is centerr and ObsDis is close then SteerDirection is right
 
-  rule: if ObsDis is close and ObsDir is centerl then SteerDirection is left
+  rule: if ObsDir is centerl and ObsDis is close then SteerDirection is left
+
+  rule: if ObsDir is lback and ObsDis is close then SteerDirection is left
+
+  rule: id ObsDir is rback and ObsDis is close then SteerDirection is right
+
+  rule: if ObsDir is lback and ObsDis is far then SteerDirection is right
+
+  rule: if ObsDir is rback and ObsDis is far then SteerDirection is left
+
+
 
