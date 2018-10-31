@@ -11,6 +11,8 @@ WorldMapper::WorldMapper()
 
     //cv::namedWindow("lidar");
     cv::namedWindow("World Map");
+
+    main_loop_thread = std::thread(&WorldMapper::main_loop, this);
 }
 
 /*
@@ -135,5 +137,73 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
 
 ControlOutput WorldMapper::getControlOutput()
 {
-    return ControlOutput{1, 0};
+    return ctrlout;
+}
+
+void WorldMapper::main_loop()
+{
+
+    const std::chrono::duration<long int> marble_check_interval(8);
+    std::chrono::system_clock::time_point next_check = std::chrono::system_clock::now();
+
+    double last_dir = dir; // These two are used for turning around when finding marbles
+    double total_dir = 0;
+
+    while (1)
+    {
+        std::this_thread::sleep_for(std::chrono::duration<double>(1/main_loop_freq));
+
+        switch (state)
+        {
+        case ControllerState::Exploring:
+            if (std::chrono::system_clock::now() > next_check)
+            {
+                state = ControllerState::CheckingForMarbles;
+                last_dir = dir;
+                total_dir = 0;
+                ctrlout = ControlOutput{0, 1};
+            }
+            else
+            {
+                ctrlout = ControlOutput{1, 0};
+            }
+            break;
+
+        case ControllerState::CheckingForMarbles: // cameraCallback does the actual checking
+        {
+            double diff_dir = last_dir-dir;
+            //std::cout << "last_dir = " << last_dir << " dir = " << dir << std::endl;
+            if (diff_dir < -M_PI)
+                diff_dir += M_PI;
+
+            total_dir += diff_dir;
+            last_dir = dir;
+            //std::cout << "diff_dir = " << diff_dir << " total_dir = " << total_dir << std::endl;
+            if (total_dir > M_PI) // Found nothing
+            {
+                //std::cout << diff_dir << std::endl;
+                state = ControllerState::Exploring;
+                next_check = std::chrono::system_clock::now() + marble_check_interval;
+                ctrlout = ControlOutput{0, 0};
+            }
+            else
+            {
+                ctrlout = ControlOutput{0, 1};
+            }
+            break;
+        }
+
+        case ControllerState::DrivingToMarble:
+            ctrlout = ControlOutput{1, 0};
+            break;
+
+        case ControllerState::ReturningToPos:
+            ctrlout = ControlOutput{1, 0};
+            break;
+
+        case ControllerState::ReturningToDir:
+            ctrlout = ControlOutput{0, 0.5};
+            break;
+        }
+    }
 }

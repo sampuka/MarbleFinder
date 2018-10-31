@@ -5,7 +5,18 @@
 
 #include <opencv2/opencv.hpp>
 
+#include <chrono>
 #include <iostream>
+#include <thread>
+
+enum class ControllerState
+{
+    Exploring,
+    CheckingForMarbles,
+    DrivingToMarble,
+    ReturningToPos,
+    ReturningToDir
+};
 
 class WorldMapper : public Controller
 {
@@ -34,6 +45,14 @@ private:
     const cv::Vec3b free_color = cv::Vec3b(255, 255, 255);
     const cv::Vec3b unknown_color = cv::Vec3b(180, 180, 180);
     const cv::Scalar robot_color = cv::Scalar(0, 0, 255);
+
+    ControlOutput ctrlout;
+
+    ControllerState state = ControllerState::CheckingForMarbles;
+
+    void main_loop();
+    std::thread main_loop_thread;
+    const float main_loop_freq = 30; // Main loop gets run 10 times per second
 };
 
 #endif // WORLDMAPPER_HPP
