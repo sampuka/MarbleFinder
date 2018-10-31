@@ -20,14 +20,24 @@ public:
     virtual ControlOutput getControlOutput() override;
 
 private:
+    void drawlineuntil(const cv::Point &start, const cv::Point &end);
+
+    const float lidar_offset = 0.2;
+
     const int height = 600;
     const int width = 1000;
     const float map_height = 65;
     const float map_width = 85;
     cv::Mat worldMap;
 
+    const cv::Vec3b wall_color = cv::Vec3b(0, 0, 0);
+    const cv::Vec3b free_color = cv::Vec3b(255, 255, 255);
+    const cv::Vec3b unknown_color = cv::Vec3b(180, 180, 180);
+    const cv::Scalar robot_color = cv::Scalar(0, 0, 255);
+
     double x_pos = 0;
     double y_pos = 0;
+    cv::Point pos;
     double dir = 0;
 };
 
