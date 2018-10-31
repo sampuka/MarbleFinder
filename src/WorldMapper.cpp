@@ -22,46 +22,10 @@ void WorldMapper::statCallback(ConstWorldStatisticsPtr &msg)
 
 void WorldMapper::poseCallback(ConstPosesStampedPtr &msg)
 {
-    int pose_size = msg->pose_size();
+    Controller::poseCallback(msg);
 
-    for (int i = 0; i < pose_size; i++)
-    {
-
-        /*
-        if (msg->pose(i).name() == "pioneer2dx::hokuyo::link")
-        {
-            //lidar_posf.x = (msg->pose(i).position().x()/map_width+0.5)*width;
-            //lidar_posf.y = (msg->pose(i).position().y()/map_height+0.5)*height;
-
-            std::cout << pos << " " << msg->pose(i).position().x() << " " << msg->pose(i).position().y() << std::endl;
-        }
-        */
-
-        if (msg->pose(i).name() == "pioneer2dx")
-        {
-            x_pos = msg->pose(i).position().x();
-            y_pos = msg->pose(i).position().y();
-
-            pos.x = (x_pos/map_width+0.5)*width;
-            pos.y = (-y_pos/map_height+0.5)*height;
-
-            //dir = msg->pose(i).orientation().z()*2; //Not confiremd it is z
-            double w = msg->pose(i).orientation().w();
-            double x = msg->pose(i).orientation().x();
-            double y = msg->pose(i).orientation().y();
-            double z = msg->pose(i).orientation().z();
-
-            dir = std::atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z));
-            // Magic from Wikipedia
-            // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-        }
-    }
-/*
-    std::cout << std::setprecision(2) << std::fixed <<
-                 "x_pos = " << std::setw(6) << x_pos <<
-                 "y_pos = " << std::setw(6) << y_pos <<
-                 "dir = "   << std::setw(6) << dir   << std::endl;
-                 */
+    pos.x = (posf.x/map_width+0.5)*width;
+    pos.y = (-posf.y/map_height+0.5)*height;
 }
 
 /*
@@ -92,8 +56,10 @@ void WorldMapper::drawlineuntil(const cv::Point &start, const cv::Point &end)
 
 void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
 {
+    /*
     if (msg->time().sec() == 0)
         return;
+*/
 
     //  std::cout << ">> " << msg->DebugString() << std::endl;
     float angle_min = float(msg->scan().angle_min());
@@ -134,8 +100,8 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
 
       //    std::cout << angle << " " << range << " " << intensity << std::endl;
 
-        cv::Point2f mapendpt_m(x_pos + lidar_offset * std::cos(dir) + range * std::cos(angle+dir),
-                               y_pos + lidar_offset * std::sin(dir) + range * std::sin(angle+dir));
+        cv::Point2f mapendpt_m(posf.x + lidar_offset * std::cos(dir) + range * std::cos(angle+dir),
+                               posf.y + lidar_offset * std::sin(dir) + range * std::sin(angle+dir));
 
         cv::Point mapendpt((mapendpt_m.x/map_width+0.5)*width,
                            (-mapendpt_m.y/map_height+0.5)*height);

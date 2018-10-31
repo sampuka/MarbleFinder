@@ -2,6 +2,7 @@
 #define CONTROLLER_HPP
 
 #include <gazebo/msgs/msgs.hh>
+#include <opencv2/opencv.hpp>
 
 //You can freely add more controllers to this list,
 //but make sure you add the gazebo subscriber thingies
@@ -36,6 +37,11 @@ public:
 
 //protected:
     ControllerType type = ControllerType::Undefined;
+
+    const float lidar_offset = 0.2; // The amount of meters in front of the robot the lidar is located
+
+    cv::Point2f posf; //Position in meters from centre. Taken directly from poseCallback
+    double dir = 0; //Angle around up-down z-axis
 };
 
 #endif // CONTROLLER_HPP

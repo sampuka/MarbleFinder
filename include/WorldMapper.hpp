@@ -22,7 +22,7 @@ public:
 private:
     void drawlineuntil(const cv::Point &start, const cv::Point &end);
 
-    const float lidar_offset = 0.2;
+    cv::Point pos; //Position in pixels from top-left
 
     const int height = 600;
     const int width = 1000;
@@ -34,11 +34,6 @@ private:
     const cv::Vec3b free_color = cv::Vec3b(255, 255, 255);
     const cv::Vec3b unknown_color = cv::Vec3b(180, 180, 180);
     const cv::Scalar robot_color = cv::Scalar(0, 0, 255);
-
-    double x_pos = 0;
-    double y_pos = 0;
-    cv::Point pos;
-    double dir = 0;
 };
 
 #endif // WORLDMAPPER_HPP
