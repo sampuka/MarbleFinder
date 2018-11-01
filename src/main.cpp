@@ -1,3 +1,6 @@
+#include "Controller.hpp"
+#include "WorldMapper.hpp"
+
 #include <gazebo/gazebo_client.hh>
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/transport/transport.hh>
@@ -100,22 +103,46 @@ int main(int _argc, char **_argv) {
   // Load gazebo
   gazebo::client::setup(_argc, _argv);
 
+  // Create our controller object
+  const ControllerType type = ControllerType::WorldMapper;
+  Controller *controller = nullptr;
+
   // Create our node for communication
   gazebo::transport::NodePtr node(new gazebo::transport::Node());
   node->Init();
 
-  // Listen to Gazebo topics
-  gazebo::transport::SubscriberPtr statSubscriber =
-      node->Subscribe("~/world_stats", statCallback);
+  gazebo::transport::SubscriberPtr statSubscriber;
+  gazebo::transport::SubscriberPtr poseSubscriber;
+  gazebo::transport::SubscriberPtr cameraSubscriber;
+  gazebo::transport::SubscriberPtr lidarSubscriber;
 
-  gazebo::transport::SubscriberPtr poseSubscriber =
-      node->Subscribe("~/pose/info", poseCallback);
+  //Subcriber the gazebo topics to the correct methods
+  switch (type)
+  {
+  case ControllerType::WorldMapper:
+  {
+      controller = new WorldMapper;
+      break;
+  }
+      //Add your controllers here
+  default:
+      break;
+  }
 
-  gazebo::transport::SubscriberPtr cameraSubscriber =
-      node->Subscribe("~/pioneer2dx/camera/link/camera/image", cameraCallback);
-
-  gazebo::transport::SubscriberPtr lidarSubscriber =
-      node->Subscribe("~/pioneer2dx/hokuyo/link/laser/scan", lidarCallback);
+  if (type == ControllerType::Show)
+  {
+      statSubscriber = node->Subscribe("~/world_stats", statCallback);
+      poseSubscriber = node->Subscribe("~/pose/info", poseCallback);
+      cameraSubscriber = node->Subscribe("~/pioneer2dx/camera/link/camera/image", cameraCallback);
+      lidarSubscriber = node->Subscribe("~/pioneer2dx/hokuyo/link/laser/scan", lidarCallback);
+  }
+  else
+  {
+      statSubscriber = node->Subscribe("~/world_stats", &Controller::statCallback, controller);
+      poseSubscriber = node->Subscribe("~/pose/info", &Controller::poseCallback, controller);
+      cameraSubscriber = node->Subscribe("~/pioneer2dx/camera/link/camera/image", &Controller::cameraCallback, controller);
+      lidarSubscriber = node->Subscribe("~/pioneer2dx/hokuyo/link/laser/scan", &Controller::lidarCallback, controller);
+  }
 
   // Publish to the robot vel_cmd topic
   gazebo::transport::PublisherPtr movementPublisher =
@@ -142,25 +169,34 @@ int main(int _argc, char **_argv) {
   while (true) {
     gazebo::common::Time::MSleep(10);
 
-    mutex.lock();
-    int key = cv::waitKey(1);
-    mutex.unlock();
+    if (type == ControllerType::Show)
+    {
+        mutex.lock();
+        int key = cv::waitKey(1);
+        mutex.unlock();
 
-    if (key == key_esc)
-      break;
+        if (key == key_esc)
+          break;
 
-    if ((key == key_up) && (speed <= 1.2f))
-      speed += 0.05;
-    else if ((key == key_down) && (speed >= -1.2f))
-      speed -= 0.05;
-    else if ((key == key_right) && (dir <= 0.4f))
-      dir += 0.05;
-    else if ((key == key_left) && (dir >= -0.4f))
-      dir -= 0.05;
-    else {
-      // slow down
-      //      speed *= 0.1;
-      //      dir *= 0.1;
+        if ((key == key_up) && (speed <= 1.2f))
+          speed += 0.05;
+        else if ((key == key_down) && (speed >= -1.2f))
+          speed -= 0.05;
+        else if ((key == key_right) && (dir <= 0.4f))
+          dir += 0.05;
+        else if ((key == key_left) && (dir >= -0.4f))
+          dir -= 0.05;
+        else {
+          // slow down
+          //      speed *= 0.1;
+          //      dir *= 0.1;
+        }
+    }
+    else
+    {
+        ControlOutput ctrlout = controller->getControlOutput();
+        speed = ctrlout.speed;
+        dir = ctrlout.dir;
     }
 
     // Generate a pose

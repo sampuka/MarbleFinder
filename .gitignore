@@ -1,3 +1,4 @@
 build/*
 build-robot_control-Desktop-Debug/*
+build-robot_control-Desktop-Release/*
 qtcreator/robot_control.pro.user
