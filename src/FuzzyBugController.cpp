@@ -3,9 +3,10 @@
 /*************************************************************/
 /*************************************************************/
 
-FuzzyBugController::FuzzyBugController(LaserScanner *pc_laser_scanner) : m_pcLaserScanner(pc_laser_scanner)
+FuzzyBugController::FuzzyBugController()
 {
-
+    buildController();
+    m_pcLaserScanner = new LaserScanner;
 }
 
 /*************************************************************/
@@ -21,9 +22,9 @@ ControlOutput FuzzyBugController::getControlOutput()
     m_pcFLEngine->process();
 
     ControlOutput out;
-    out.direction = m_pflSteerDirection->getValue();
+    out.dir       = m_pflSteerDirection->getValue();
     out.speed     = m_pflSpeed->getValue();
-    std::cout<<out.direction<<std::endl;
+    std::cout<<out.dir<<std::endl;
     std::cout<<out.speed<<std::endl;
     return out;
 }
@@ -47,3 +48,10 @@ void FuzzyBugController::buildController()
 
 /*************************************************************/
 /*************************************************************/
+
+void FuzzyBugController::lidarCallback(ConstLaserScanStampedPtr &msg)
+{
+    std::cout << "a" << std::endl;
+    m_pcLaserScanner->parseLaserScannerMessage(msg);
+    std::cout << "b" << std::endl;
+}
