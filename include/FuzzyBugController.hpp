@@ -4,7 +4,7 @@
 /*************************************************************/
 /*************************************************************/
 
-#include "laserscanner.h"
+#include "LaserScanner.hpp"
 #include <fl/Headers.h>
 
 struct ControlOutput

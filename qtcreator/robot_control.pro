@@ -4,10 +4,9 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += ../src/main.cpp \
-    ../src/laserscanner.cpp \
-    ../src/fuzzybugcontroller.cpp \
-    ../src/visioncamera.cpp \
-    ../src/brushfire.cpp
+    ../src/LaserScanner.cpp \
+    ../src/FuzzyBugController.cpp \
+    ../src/Brushfire.cpp
 
 CONFIG += link_pkgconfig
 PKGCONFIG += gazebo
@@ -21,13 +20,10 @@ INCLUDEPATH +=/home/thor/fuzzylite-6.0/fuzzylite
 
 INCLUDEPATH += ../include/
 HEADERS += \
-    ../include/laserscanner.h \
-    ../include/fuzzybugcontroller.h \
-    ../include/visioncamera.h \
-    ../include/brushfire.h
+    ../include/LaserScanner.hpp \
+    ../include/FuzzyBugController.hpp \
+    ../include/Brushfire.hpp
 
 DISTFILES += \
-    fuzzybugcontroller.fll \
-    123.fll \
     ../123.fll
 

@@ -1,14 +1,14 @@
-#include"brushfire.h"
+#include "Brushfire.hpp"
 
 
 
-brushfire::brushfire()
+Brushfire::Brushfire()
 {
 
 }
 
 
-void brushfire::makebrushfire()
+void Brushfire::makeBrushfire()
 {
    image2=getimage();
    int height = image2.cols;
@@ -122,7 +122,7 @@ void brushfire::makebrushfire()
    }
     cout<<"burshfire done"<<endl;
    cout<< '\n';
-   cout<<"World enviroment with brushfire:" <<endl;
+   cout<<"World enviroment with Brushfire:" <<endl;
 
    for(int row=0; row < width; row++)
    {
@@ -140,7 +140,7 @@ waitKey(0);
 
 }
 
-Mat brushfire::getimage()
+Mat Brushfire::getimage()
 {
     image = imread("/home/thor/MarbleFinder/world/models/bigworld/meshes/floor_plan.png",IMREAD_COLOR);
     //image = imread("/home/thor/MarbleFinder/world/models/smallworld/meshes/floor_plan.png", IMREAD_COLOR);
@@ -149,14 +149,14 @@ Mat brushfire::getimage()
 
 }
 
-void brushfire::showbrushfire()
+void Brushfire::showBrushfire()
 {
 
 }
 
 
 
-brushfire::~brushfire()
+Brushfire::~Brushfire()
 {
 
 }

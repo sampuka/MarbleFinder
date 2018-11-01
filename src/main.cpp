@@ -1,13 +1,13 @@
 #include <gazebo/gazebo_client.hh>
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/transport/transport.hh>
-#include"fuzzybugcontroller.h"
+#include "FuzzyBugController.hpp"
 #include <opencv2/opencv.hpp>
 
 #include <iostream>
-#include<fl/Headers.h>
-#include"laserscanner.h"
-#include"brushfire.h"
+#include <fl/Headers.h>
+#include "LaserScanner.hpp"
+#include "Brushfire.hpp"
 
 static boost::mutex mutex;
 //static LaserScanner ls;
@@ -100,8 +100,8 @@ void lidarCallback(ConstLaserScanStampedPtr &msg) {
 }
 
 int main(int _argc, char **_argv) {
-    brushfire bob;
-    bob.makebrushfire();
+    Brushfire bob;
+    bob.makeBrushfire();
 
 //  ConstLaserScanPtr msg;
 //   LaserScannerReading ls1;
