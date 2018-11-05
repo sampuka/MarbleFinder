@@ -3,8 +3,11 @@
 #include <gazebo/transport/transport.hh>
 
 #include <opencv2/opencv.hpp>
+#include "pathtracking.h"
 
 #include <iostream>
+
+using namespace cv;
 
 static boost::mutex mutex;
 
@@ -22,14 +25,14 @@ void poseCallback(ConstPosesStampedPtr &_msg) {
   for (int i = 0; i < _msg->pose_size(); i++) {
     if (_msg->pose(i).name() == "pioneer2dx") {
 
-      std::cout << std::setprecision(2) << std::fixed << std::setw(6)
+     /* std::cout << std::setprecision(2) << std::fixed << std::setw(6)
                 << _msg->pose(i).position().x() << std::setw(6)
                 << _msg->pose(i).position().y() << std::setw(6)
                 << _msg->pose(i).position().z() << std::setw(6)
                 << _msg->pose(i).orientation().w() << std::setw(6)
                 << _msg->pose(i).orientation().x() << std::setw(6)
                 << _msg->pose(i).orientation().y() << std::setw(6)
-                << _msg->pose(i).orientation().z() << std::endl;
+                << _msg->pose(i).orientation().z() << std::endl;*/
     }
   }
 }
@@ -97,6 +100,9 @@ void lidarCallback(ConstLaserScanStampedPtr &msg) {
 }
 
 int main(int _argc, char **_argv) {
+PathTracking path;
+
+
   // Load gazebo
   gazebo::client::setup(_argc, _argv);
 
@@ -116,6 +122,9 @@ int main(int _argc, char **_argv) {
 
   gazebo::transport::SubscriberPtr lidarSubscriber =
       node->Subscribe("~/pioneer2dx/hokuyo/link/laser/scan", lidarCallback);
+
+  gazebo::transport::SubscriberPtr poseSubscriberLocal =
+  node->Subscribe("~/pose/local/info", &PathTracking::wheelAngSubscriber, &path);
 
   // Publish to the robot vel_cmd topic
   gazebo::transport::PublisherPtr movementPublisher =
@@ -138,11 +147,25 @@ int main(int _argc, char **_argv) {
   float speed = 0.0;
   float dir = 0.0;
 
+  Mat floorMap;
+  Mat scaledMap;
+  floorMap = imread("../world/models/bigworld/meshes/floor_plan.png",IMREAD_COLOR);
+
+  if(! floorMap.data )                              // Check for invalid input
+  {
+      std::cout <<  "Could not open or find the image" << std::endl ;
+      return -1;
+  }
+
+  resize(floorMap, scaledMap,  floorMap.size()*5, 0, 0, INTER_NEAREST);
+
+
   // Loop
   while (true) {
     gazebo::common::Time::MSleep(10);
 
     mutex.lock();
+    path.draw(scaledMap);
     int key = cv::waitKey(1);
     mutex.unlock();
 
@@ -162,6 +185,8 @@ int main(int _argc, char **_argv) {
       //      speed *= 0.1;
       //      dir *= 0.1;
     }
+
+
 
     // Generate a pose
     ignition::math::Pose3d pose(double(speed), 0, 0, 0, 0, double(dir));

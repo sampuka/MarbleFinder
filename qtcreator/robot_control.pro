@@ -3,11 +3,15 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
-SOURCES += ../src/main.cpp
+SOURCES += ../src/main.cpp \
+    pathtracking.cpp
 
-INCLUDEPATH += ~/fuzzylite-6.0/fuzzylite/
-LIBS += -L~/fuzzylite-6.0/fuzzylite/release/bin -lfuzzylite-static
+#INCLUDEPATH += ~/fuzzylite-6.0/fuzzylite/
+#LIBS += -L~/fuzzylite-6.0/fuzzylite/release/bin -lfuzzylite-static
 
 CONFIG += link_pkgconfig
 PKGCONFIG += gazebo
 PKGCONFIG += opencv
+
+HEADERS += \
+    pathtracking.h
