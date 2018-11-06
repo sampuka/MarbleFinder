@@ -14,13 +14,12 @@ CONFIG += link_pkgconfig
 PKGCONFIG += gazebo
 PKGCONFIG += opencv
 
-
 unix:!macx: LIBS += /home/sampuka/fuzzylite-6.0/release/bin/libfuzzylite-static.a
 
 INCLUDEPATH += /home/sampuka/fuzzylite-6.0/fuzzylite
 
-
 INCLUDEPATH += ../include/
+
 HEADERS += \
     ../include/LaserScanner.hpp \
     ../include/FuzzyBugController.hpp \
@@ -30,4 +29,3 @@ HEADERS += \
 
 DISTFILES += \
     ../123.fll
-
