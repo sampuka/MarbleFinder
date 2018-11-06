@@ -53,7 +53,7 @@ private:
 
     void main_loop();
     std::thread main_loop_thread;
-    const float main_loop_freq = 30; // Main loop gets run 10 times per second
+    const float main_loop_freq = 30; // Main loop gets run this many times per second
 };
 
 #endif // WORLDMAPPER_HPP

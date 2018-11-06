@@ -1,5 +1,6 @@
 #include "Controller.hpp"
 #include "WorldMapper.hpp"
+#include "FuzzyBugController.hpp"
 
 #include <gazebo/gazebo_client.hh>
 #include <gazebo/msgs/msgs.hh>
@@ -104,7 +105,7 @@ int main(int _argc, char **_argv) {
   gazebo::client::setup(_argc, _argv);
 
   // Create our controller object
-  const ControllerType type = ControllerType::WorldMapper;
+  const ControllerType type = ControllerType::WorldMapper; // Switch between controllers here
   Controller *controller = nullptr;
 
   // Create our node for communication
@@ -122,6 +123,11 @@ int main(int _argc, char **_argv) {
   case ControllerType::WorldMapper:
   {
       controller = new WorldMapper;
+      break;
+  }
+  case ControllerType::FuzzyBug:
+  {
+      controller = new FuzzyBugController;
       break;
   }
       //Add your controllers here
@@ -209,5 +215,7 @@ int main(int _argc, char **_argv) {
   }
 
   // Make sure to shut everything down.
+
+  delete controller;
   gazebo::client::shutdown();
 }

@@ -12,6 +12,8 @@ enum class ControllerType
     Undefined,
     Show,
     WorldMapper,
+    WallFollower,
+    FuzzyBug,
     Test
 };
 
