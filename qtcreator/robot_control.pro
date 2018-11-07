@@ -8,15 +8,16 @@ SOURCES += ../src/main.cpp \
     ../src/FuzzyBugController.cpp \
     ../src/Brushfire.cpp \
     ../src/Controller.cpp \
-    ../src/WorldMapper.cpp
+    ../src/WorldMapper.cpp \
+    ../src/Astar.cpp
 
 CONFIG += link_pkgconfig
 PKGCONFIG += gazebo
 PKGCONFIG += opencv
 
-unix:!macx: LIBS += /home/sampuka/fuzzylite-6.0/release/bin/libfuzzylite-static.a
+unix:!macx: LIBS += /home/thor/fuzzylite-6.0/release/bin/libfuzzylite-static.a
 
-INCLUDEPATH += /home/sampuka/fuzzylite-6.0/fuzzylite
+INCLUDEPATH += /home/thor/fuzzylite-6.0/fuzzylite
 
 INCLUDEPATH += ../include/
 
@@ -25,7 +26,8 @@ HEADERS += \
     ../include/FuzzyBugController.hpp \
     ../include/Brushfire.hpp \
     ../include/Controller.hpp \
-    ../include/WorldMapper.hpp
+    ../include/WorldMapper.hpp \
+    ../include/Astar.hpp
 
 DISTFILES += \
     ../123.fll
