@@ -1,10 +1,7 @@
 #include "Astar.hpp"
 using namespace cv;
 using namespace std;
-Astar::Astar()
-{
 
-}
 
 struct cell
 {
@@ -74,7 +71,6 @@ std::vector<cv::Point> astar(const cv::Mat &map, const cv::Point &start, const c
 {
     typedef pair<int,Point> pPair;
     vector<Point> emptyvec;
-    vector<Point> pathVec;
     int rows =map.rows;
     int cols =map.cols;
     if(isValid(map,start)==false && isValid(map,end)==false)
@@ -168,7 +164,7 @@ std::vector<cv::Point> astar(const cv::Mat &map, const cv::Point &start, const c
            hNew=calculateHValue(map,Point(i-1,j),end);
            fNew=gNew+hNew;
 
-           if (cellDetails[i-1][j].f==FLT_MAX || cellDetails[i-1][j]>fNew)
+           if (cellDetails[i-1][j].f>fNew)
            {
                openList.insert(make_pair(fNew,Point(i-1,j)));
                cellDetails[i-1][j].f=fNew;
@@ -179,30 +175,211 @@ std::vector<cv::Point> astar(const cv::Mat &map, const cv::Point &start, const c
            }
         }
     }
-    // 2 Sucessor south
-    if(isDestination(map,Point(i+1,j),end)== true)
-    {
-        cellDetails[i+1][j].parent_i=i;
-        cellDetails[i+1][j].parent_j=j;
-        foundDest= true;
-        return tracePath(cellDetails,end);
 
-    }
-    else if (closedList[i+1][j]==false && isUnblocked(map,Point(i,j)))
+    //2 sucessor south
+    if(isValid(map,Point(i+1,j))==true)
     {
-       gNew=cellDetails[i][j].g+1.0;
-       hNew=calculateHValue(map,Point(i+1,j),end);
-       fNew=gNew+hNew;
+        //1st Sucessor North
+        if(isDestination(map,Point(i+1,j),end)== true)
+        {
+            cellDetails[i+1][j].parent_i=i;
+            cellDetails[i+1][j].parent_j=j;
+            foundDest= true;
+            return tracePath(cellDetails,end);
 
-       if (cellDetails[i+1][j].f == FLT_MAX || cellDetails[i+1][j]>fNew)
-       {
-           openList.insert(make_pair(fNew,Point(i+1,j)));
-           cellDetails[i+1][j].f=fNew;
-           cellDetails[i+1][j].g=gNew;
-           cellDetails[i+1][j].h=hNew;
-           cellDetails[i+1][j].parent_i=i;
-           cellDetails[i+1][j].parent_j=j;
-       }
+        }
+        else if (closedList[i+1][j]==false && isUnblocked(map,Point(i,j)))
+        {
+           gNew=cellDetails[i][j].g+1.0;
+           hNew=calculateHValue(map,Point(i+1,j),end);
+           fNew=gNew+hNew;
+
+           if (cellDetails[i+1][j].f>fNew)
+           {
+               openList.insert(make_pair(fNew,Point(i+1,j)));
+               cellDetails[i+1][j].f=fNew;
+               cellDetails[i+1][j].g=gNew;
+               cellDetails[i+1][j].h=hNew;
+               cellDetails[i+1][j].parent_i=i;
+               cellDetails[i+1][j].parent_j=j;
+           }
+        }
     }
+// 3 sicesspr east
+    if(isValid(map,Point(i,j+1))==true)
+    {
+        //1st Sucessor North
+        if(isDestination(map,Point(i,j+1),end)== true)
+        {
+            cellDetails[i][j+1].parent_i=i;
+            cellDetails[i][j+1].parent_j=j;
+            foundDest= true;
+            return tracePath(cellDetails,end);
+
+        }
+        else if (closedList[i][j+1]==false && isUnblocked(map,Point(i,j)))
+        {
+           gNew=cellDetails[i][j].g+1.0;
+           hNew=calculateHValue(map,Point(i,j+1),end);
+           fNew=gNew+hNew;
+
+           if (cellDetails[i][j+1].f>fNew)
+           {
+               openList.insert(make_pair(fNew,Point(i,j+1)));
+               cellDetails[i][j+1].f=fNew;
+               cellDetails[i][j+1].g=gNew;
+               cellDetails[i][j+1].h=hNew;
+               cellDetails[i][j+1].parent_i=i;
+               cellDetails[i][j+1].parent_j=j;
+           }
+        }
     }
+// 4 sucessor
+    if(isValid(map,Point(i,j-1))==true)
+    {
+        //1st Sucessor North
+        if(isDestination(map,Point(i,j-1),end)== true)
+        {
+            cellDetails[i][j-1].parent_i=i;
+            cellDetails[i][j-1].parent_j=j;
+            foundDest= true;
+            return tracePath(cellDetails,end);
+
+        }
+        else if (closedList[i][j-1]==false && isUnblocked(map,Point(i,j)))
+        {
+           gNew=cellDetails[i][j].g+1.0;
+           hNew=calculateHValue(map,Point(i,j-1),end);
+           fNew=gNew+hNew;
+
+           if (cellDetails[i][j-1].f>fNew)
+           {
+               openList.insert(make_pair(fNew,Point(i,j-1)));
+               cellDetails[i][j-1].f=fNew;
+               cellDetails[i][j-1].g=gNew;
+               cellDetails[i][j-1].h=hNew;
+               cellDetails[i][j-1].parent_i=i;
+               cellDetails[i][j-1].parent_j=j;
+           }
+        }
+    }
+    //5 sucessor north east
+    if(isValid(map,Point(i-1,j+1))==true)
+    {
+        //1st Sucessor North
+        if(isDestination(map,Point(i-1,j+1),end)== true)
+        {
+            cellDetails[i-1][j+1].parent_i=i;
+            cellDetails[i-1][j+1].parent_j=j;
+            foundDest= true;
+            return tracePath(cellDetails,end);
+
+        }
+        else if (closedList[i-1][j+1]==false && isUnblocked(map,Point(i,j)))
+        {
+           gNew=cellDetails[i][j].g+1.0;
+           hNew=calculateHValue(map,Point(i-1,j+1),end);
+           fNew=gNew+hNew;
+
+           if (cellDetails[i-1][j+1].f>fNew)
+           {
+               openList.insert(make_pair(fNew,Point(i-1,j+1)));
+               cellDetails[i-1][j+1].f=fNew;
+               cellDetails[i-1][j+1].g=gNew;
+               cellDetails[i-1][j+1].h=hNew;
+               cellDetails[i-1][j+1].parent_i=i;
+               cellDetails[i-1][j+1].parent_j=j;
+           }
+        }
+    }
+    //6 sucessor north west
+    if(isValid(map,Point(i-1,j-1))==true)
+    {
+        //1st Sucessor North
+        if(isDestination(map,Point(i-1,j-1),end)== true)
+        {
+            cellDetails[i-1][j-1].parent_i=i;
+            cellDetails[i-1][j-1].parent_j=j;
+            foundDest= true;
+            return tracePath(cellDetails,end);
+
+        }
+        else if (closedList[i-1][j-1]==false && isUnblocked(map,Point(i,j)))
+        {
+           gNew=cellDetails[i][j].g+1.0;
+           hNew=calculateHValue(map,Point(i-1,j-1),end);
+           fNew=gNew+hNew;
+
+           if (cellDetails[i-1][j-1].f>fNew)
+           {
+               openList.insert(make_pair(fNew,Point(i-1,j-1)));
+               cellDetails[i-1][j-1].f=fNew;
+               cellDetails[i-1][j-1].g=gNew;
+               cellDetails[i-1][j-1].h=hNew;
+               cellDetails[i-1][j-1].parent_i=i;
+               cellDetails[i-1][j-1].parent_j=j;
+           }
+        }
+    }
+    // 7 sucessor south east
+    if(isValid(map,Point(i+1,j+1))==true)
+    {
+        //1st Sucessor North
+        if(isDestination(map,Point(i+1,j+1),end)== true)
+        {
+            cellDetails[i+1][j+1].parent_i=i;
+            cellDetails[i+1][j+1].parent_j=j;
+            foundDest= true;
+            return tracePath(cellDetails,end);
+
+        }
+        else if (closedList[i+1][j+1]==false && isUnblocked(map,Point(i,j)))
+        {
+           gNew=cellDetails[i][j].g+1.0;
+           hNew=calculateHValue(map,Point(i+1,j+1),end);
+           fNew=gNew+hNew;
+
+           if (cellDetails[i+1][j+1].f>fNew)
+           {
+               openList.insert(make_pair(fNew,Point(i+1,j+1)));
+               cellDetails[i+1][j+1].f=fNew;
+               cellDetails[i+1][j+1].g=gNew;
+               cellDetails[i+1][j+1].h=hNew;
+               cellDetails[i+1][j+1].parent_i=i;
+               cellDetails[i+1][j+1].parent_j=j;
+           }
+        }
+    }
+    // 8 sucessor south west
+    if(isValid(map,Point(i+1,j-1))==true)
+    {
+        //1st Sucessor North
+        if(isDestination(map,Point(i+1,j-1),end)== true)
+        {
+            cellDetails[i+1][j-1].parent_i=i;
+            cellDetails[i+1][j-1].parent_j=j;
+            foundDest= true;
+            return tracePath(cellDetails,end);
+
+        }
+        else if (closedList[i+1][j-1]==false && isUnblocked(map,Point(i,j)))
+        {
+           gNew=cellDetails[i][j].g+1.0;
+           hNew=calculateHValue(map,Point(i+1,j-1),end);
+           fNew=gNew+hNew;
+
+           if (cellDetails[i+1][j-1].f>fNew)
+           {
+               openList.insert(make_pair(fNew,Point(i-1,j)));
+               cellDetails[i+1][j-1].f=fNew;
+               cellDetails[i+1][j-1].g=gNew;
+               cellDetails[i+1][j-1].h=hNew;
+               cellDetails[i+1][j-1].parent_i=i;
+               cellDetails[i+1][j-1].parent_j=j;
+           }
+        }
+    }
+    if(foundDest==false)
+        return emptyvec;
+}
 }
