@@ -14,18 +14,18 @@ struct cell
 
 bool isValid(const Mat &map, const Point &xpoint)
 {
- int ROWS =map.rows;
- int COLS = map.cols;
-return(xpoint.x>=0 && xpoint.x<COLS && xpoint.y>=0 && xpoint.y<ROWS);
+   int ROWS =map.rows;
+   int COLS = map.cols;
+   return(xpoint.x>=0 && xpoint.x<COLS && xpoint.y>=0 && xpoint.y<ROWS);
 
 }
 
 bool isUnblocked(const Mat &map,const Point &xpoint)
 {
-    if(map.at<Vec3b>(xpoint.y,xpoint.x)!=Vec3b(0,0,0))
-    return(true);
+    if(map.at<Vec3b>(xpoint.y,xpoint.x)==Vec3b(255,255,255))
+        return(true);
     else
-    return(false);
+        return(false);
 }
 
 bool isDestination(const Mat &map, const Point &cpoint,const  Point &epoint)
@@ -37,79 +37,172 @@ bool isDestination(const Mat &map, const Point &cpoint,const  Point &epoint)
 
 }
 
-double calculateHValue(Mat &map, Point cpoint, Point &epoint)
+double calculateHValue(const Mat &map, const Point cpoint,  const Point &epoint)
 {
     return((double)sqrt ((cpoint.x-epoint.x)*(cpoint.y-epoint.y)));
+}
+
+vector<Point> tracePath(vector<vector<cell>> cellDetails, const Point &xpoint)
+{
+    int row= xpoint.y;
+    int col=xpoint.x;
+    vector<Point> Pathvec;
+    stack<Point> Path;
+
+    while (!(cellDetails[row][col].parent_i == row
+                && cellDetails[row][col].parent_j == col ))
+        {
+            Path.push (Point(row, col));
+            int temp_row = cellDetails[row][col].parent_i;
+            int temp_col = cellDetails[row][col].parent_j;
+            row = temp_row;
+            col = temp_col;
+        }
+    Path.push(Point(row,col));
+    while(!Path.empty())
+    {
+        Point P= Path.top();
+        Path.pop();
+        Pathvec.push_back(P);
+    }
+return Pathvec;
+
 }
 
 
 std::vector<cv::Point> astar(const cv::Mat &map, const cv::Point &start, const cv::Point &end)
 {
     typedef pair<int,Point> pPair;
-  vector<Point> emptyvec;
-int rows =map.rows;
-int cols =map.cols;
-if(isValid(map,start)==false && isValid(map,end)==false)
-{
-    return emptyvec;
-}
-if(isUnblocked(map,start)==false || isUnblocked(map,end))
-   {
-    return emptyvec;
-   }
-if(isDestination(map, start,end)== true)
-{
-    return emptyvec;
-}
-bool closedList [rows][cols];
-memset(closedList,false,sizeof(closedList));
-int i, j;
-cell cellDetails[rows][cols];
-for(i=0;i<rows;i++)
-{
-    for(j=0;j<cols; j++)
+    vector<Point> emptyvec;
+    vector<Point> pathVec;
+    int rows =map.rows;
+    int cols =map.cols;
+    if(isValid(map,start)==false && isValid(map,end)==false)
     {
-       cellDetails[i][j].f=FLT_MAX;
-       cellDetails[i][j].g=FLT_MAX;
-       cellDetails[i][j].h=FLT_MAX;
-       cellDetails[i][j].parent_i=-1;
-       cellDetails[i][j].parent_j=-1;
+        return emptyvec;
     }
-}
+    if(isUnblocked(map,start)==false || isUnblocked(map,end))
+       {
+        return emptyvec;
+       }
+    if(isDestination(map, start,end)== true)
+    {
+        return emptyvec;
+    }
+    bool closedList [rows][cols];
+    memset(closedList,false,sizeof(closedList));
+    int i, j;
+    vector<vector<cell>> cellDetails;
+    for(i=0;i<rows;i++)
+    {
+        cellDetails.push_back(vector<cell>());
+        for(j=0;j<cols; j++)
+        {
+            cell newcell;
+           newcell.f=FLT_MAX;
+           newcell.g=FLT_MAX;
+           newcell.h=FLT_MAX;
+           newcell.parent_i=-1;
+           newcell.parent_j=-1;
+        }
+    }
 
-i=start.y;
-j=start.x;
-cellDetails[i][j].f=0.0;
-cellDetails[i][j].g=0.0;
-cellDetails[i][j].h=0.0;
-cellDetails[i][j].parent_i=i;
-cellDetails[i][j].parent_j=j;
+    i=start.y;
+    j=start.x;
+    cellDetails[i][j].f=0.0;
+    cellDetails[i][j].g=0.0;
+    cellDetails[i][j].h=0.0;
+    cellDetails[i][j].parent_i=i;
+    cellDetails[i][j].parent_j=j;
 
-set<pPair> openList;
+    set<pPair> openList;
 
-openList.insert(make_pair(0.0,Point(i,j)));
+    openList.insert(make_pair(0.0,Point(i,j)));
 
-/*
- Generating all the 8 successor of this cell
+    bool foundDest =false;
 
-     N.W   N   N.E
-       \   |   /
-        \  |  /
-     W----Cell----E
-          / | \
-        /   |  \
-     S.W    S   S.E
+    while(!openList.empty())
+    {
+        pPair p=*openList.begin();
 
- Cell-->Popped Cell (i, j)
- N -->  North       (i-1, j)
- S -->  South       (i+1, j)
- E -->  East        (i, j+1)
- W -->  West           (i, j-1)
- N.E--> North-East  (i-1, j+1)
- N.W--> North-West  (i-1, j-1)
- S.E--> South-East  (i+1, j+1)
- S.W--> South-West  (i+1, j-1)*/
+        openList.erase(openList.begin());
+        i=p.second.y;
+        j=p.second.x;
+        closedList[i][j]=true;
+    /*
+     Generating all the 8 successor of this cell
 
+         N.W   N   N.E
+           \   |   /
+            \  |  /
+         W----Cell----E
+              / | \
+            /   |  \
+         S.W    S   S.E
 
+     Cell-->Popped Cell (i, j)
+     N -->  North       (i-1, j)
+     S -->  South       (i+1, j)
+     E -->  East        (i, j+1)
+     W -->  West           (i, j-1)
+     N.E--> North-East  (i-1, j+1)
+     N.W--> North-West  (i-1, j-1)
+     S.E--> South-East  (i+1, j+1)
+     S.W--> South-West  (i+1, j-1)*/
 
+    double gNew, hNew, fNew;
+    if(isValid(map,Point(i-1,j))==true)
+    {
+        //1st Sucessor North
+        if(isDestination(map,Point(i-1,j),end)== true)
+        {
+            cellDetails[i-1][j].parent_i=i;
+            cellDetails[i-1][j].parent_j=j;
+            foundDest= true;
+            return tracePath(cellDetails,end);
+
+        }
+        else if (closedList[i-1][j]==false && isUnblocked(map,Point(i,j)))
+        {
+           gNew=cellDetails[i][j].g+1.0;
+           hNew=calculateHValue(map,Point(i-1,j),end);
+           fNew=gNew+hNew;
+
+           if (cellDetails[i-1][j].f==FLT_MAX || cellDetails[i-1][j]>fNew)
+           {
+               openList.insert(make_pair(fNew,Point(i-1,j)));
+               cellDetails[i-1][j].f=fNew;
+               cellDetails[i-1][j].g=gNew;
+               cellDetails[i-1][j].h=hNew;
+               cellDetails[i-1][j].parent_i=i;
+               cellDetails[i-1][j].parent_j=j;
+           }
+        }
+    }
+    // 2 Sucessor south
+    if(isDestination(map,Point(i+1,j),end)== true)
+    {
+        cellDetails[i+1][j].parent_i=i;
+        cellDetails[i+1][j].parent_j=j;
+        foundDest= true;
+        return tracePath(cellDetails,end);
+
+    }
+    else if (closedList[i+1][j]==false && isUnblocked(map,Point(i,j)))
+    {
+       gNew=cellDetails[i][j].g+1.0;
+       hNew=calculateHValue(map,Point(i+1,j),end);
+       fNew=gNew+hNew;
+
+       if (cellDetails[i+1][j].f == FLT_MAX || cellDetails[i+1][j]>fNew)
+       {
+           openList.insert(make_pair(fNew,Point(i+1,j)));
+           cellDetails[i+1][j].f=fNew;
+           cellDetails[i+1][j].g=gNew;
+           cellDetails[i+1][j].h=hNew;
+           cellDetails[i+1][j].parent_i=i;
+           cellDetails[i+1][j].parent_j=j;
+       }
+    }
+    }
 }
