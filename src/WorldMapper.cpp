@@ -187,12 +187,6 @@ void WorldMapper::main_loop()
                 if (current_goal_valid)
                 {
                     float dirgoal = std::atan2(current_goal.y - pos.y, current_goal.x - pos.x);
-                    /*
-                    if (dirgoal > M_PI)
-                        dirgoal -= M_PI;
-                    if (dirgoal < - M_PI)
-                        dirgoal += M_PI;
-                    */
 
                     float direrror = dirgoal + dir;
                     if (direrror > M_PI)
