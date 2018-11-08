@@ -175,6 +175,7 @@ void WorldMapper::main_loop()
         switch (state)
         {
         case ControllerState::Exploring:
+        {
             if (std::chrono::system_clock::now() > next_marble_check)
             {
                 state = ControllerState::CheckingForMarbles;
@@ -207,7 +208,7 @@ void WorldMapper::main_loop()
                 }
             }
             break;
-
+        }
         case ControllerState::CheckingForMarbles: // cameraCallback does the actual checking
         {
             double diff_dir = last_dir-dir;
@@ -302,7 +303,7 @@ void WorldMapper::find_unknown()
     }
 */
 
-    const int point_range = 10;
+    const int point_range = 20;
     cv::Mat pointmap = cv::Mat(height, width, CV_32SC1);
     pointmap.setTo(0);
 
@@ -318,7 +319,6 @@ void WorldMapper::find_unknown()
                 if (j+p.y-point_range >= pointmap.rows || j+p.y-point_range < 0)
                     continue;
 
-                //std::cout << "Point " << p << " => " << cv::Point(i+p.x-point_range, j+p.y-point_range) << std::endl;
                 pointmap.at<std::int32_t>(j+p.y-point_range, i+p.x-point_range) += 2*point_range - std::abs(point_range-i) - std::abs(point_range-j);
             }
         }
