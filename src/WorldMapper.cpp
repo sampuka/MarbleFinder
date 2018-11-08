@@ -136,6 +136,11 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
                robot_color2,
                -1);
 
+    if (current_goal_valid)
+    {
+        cv::circle(worldMapShow, current_goal, 3, goal_color);
+    }
+
     cv::imshow("World Map", worldMapShow);
     //cv::imshow("lidar", im);
     cv::waitKey(1);
@@ -148,9 +153,11 @@ ControlOutput WorldMapper::getControlOutput()
 
 void WorldMapper::main_loop()
 {
+    const std::chrono::duration<long int> marble_check_interval(8000);
+    std::chrono::system_clock::time_point next_marble_check = std::chrono::system_clock::now();
 
-    const std::chrono::duration<long int> marble_check_interval(8);
-    std::chrono::system_clock::time_point next_check = std::chrono::system_clock::now();
+    const std::chrono::duration<long int> goal_check_interval(2);
+    std::chrono::system_clock::time_point next_goal_check = std::chrono::system_clock::now();
 
     double last_dir = dir; // These two are used for turning around when finding marbles
     double total_dir = 0;
@@ -159,10 +166,16 @@ void WorldMapper::main_loop()
     {
         std::this_thread::sleep_for(std::chrono::duration<double>(1/main_loop_freq));
 
+        if (std::chrono::system_clock::now() > next_goal_check)
+        {
+            next_goal_check = std::chrono::system_clock::now() + goal_check_interval;
+            find_unknown();
+        }
+
         switch (state)
         {
         case ControllerState::Exploring:
-            if (std::chrono::system_clock::now() > next_check)
+            if (std::chrono::system_clock::now() > next_marble_check)
             {
                 state = ControllerState::CheckingForMarbles;
                 last_dir = dir;
@@ -171,7 +184,33 @@ void WorldMapper::main_loop()
             }
             else
             {
-                ctrlout = ControlOutput{1, 0};
+                if (current_goal_valid)
+                {
+                    float dirgoal = std::atan2(current_goal.y - pos.y, current_goal.x - pos.x);
+                    /*
+                    if (dirgoal > M_PI)
+                        dirgoal -= M_PI;
+                    if (dirgoal < - M_PI)
+                        dirgoal += M_PI;
+                    */
+
+                    float direrror = dirgoal + dir;
+                    if (direrror > M_PI)
+                        direrror -= 2*M_PI;
+                    if (direrror < - M_PI)
+                        direrror += 2*M_PI;
+
+                    std::cout << dirgoal << " " << dir << " " << direrror << std::endl;
+
+                    if (direrror > 0)
+                        ctrlout = ControlOutput{1, 1};
+                    else
+                        ctrlout = ControlOutput{1, -1};
+                }
+                else
+                {
+                    ctrlout = ControlOutput{1, 0};
+                }
             }
             break;
 
@@ -189,7 +228,7 @@ void WorldMapper::main_loop()
             {
                 //std::cout << diff_dir << std::endl;
                 state = ControllerState::Exploring;
-                next_check = std::chrono::system_clock::now() + marble_check_interval;
+                next_marble_check = std::chrono::system_clock::now() + marble_check_interval;
                 ctrlout = ControlOutput{0, 0};
             }
             else
@@ -202,14 +241,115 @@ void WorldMapper::main_loop()
         case ControllerState::DrivingToMarble:
             ctrlout = ControlOutput{1, 0};
             break;
-
-        case ControllerState::ReturningToPos:
-            ctrlout = ControlOutput{1, 0};
-            break;
-
-        case ControllerState::ReturningToDir:
-            ctrlout = ControlOutput{0, 0.5};
-            break;
         }
     }
+}
+
+void WorldMapper::find_unknown()
+{
+    const std::vector<cv::Point> neighbors =
+    {
+        cv::Point(1 ,-1),
+        cv::Point(1 , 0),
+        cv::Point(1 , 1),
+        cv::Point(0 , 1),
+        cv::Point(-1, 1),
+        cv::Point(-1, 0),
+        cv::Point(-1,-1),
+        cv::Point(0 ,-1)
+    };
+
+    std::vector<cv::Point> reachable_unknowns;
+
+    for (int i = 0; i < worldMap.rows; i++)
+    {
+        for (int j = 0; j < worldMap.cols; j++)
+        {
+            if (worldMap.at<cv::Vec3b>(i, j) == unknown_color)
+            {
+                bool has_neighbor = false;
+
+                for (const cv::Point &p : neighbors)
+                {
+                    const cv::Point neighbor = cv::Point(j, i) + p;
+
+                    if (neighbor.x < worldMap.cols &&
+                        neighbor.x >= 0 &&
+                        neighbor.y < worldMap.rows &&
+                        neighbor.y >= 0)
+                    {
+                        if (worldMap.at<cv::Vec3b>(neighbor) == free_color)
+                        {
+                            has_neighbor = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (has_neighbor)
+                {
+                    reachable_unknowns.push_back(cv::Point(j, i));
+                }
+            }
+        }
+    }
+
+    if (reachable_unknowns.size() == 0)
+    {
+        std::cout << "Nothing left to explore" << std::endl;
+        current_goal_valid = false;
+        return;
+    }
+
+/*
+    for (const cv::Point &p : reachable_unknowns)
+    {
+        worldMap.at<cv::Vec3b>(p) = goal_color;
+    }
+*/
+
+    const int point_range = 10;
+    cv::Mat pointmap = cv::Mat(height, width, CV_32SC1);
+    pointmap.setTo(0);
+
+    for (const cv::Point &p : reachable_unknowns)
+    {
+        for (int i = 0; i < 2*point_range; i++)
+        {
+            if (i+p.x-point_range >= pointmap.cols || i+p.x-point_range < 0)
+                continue;
+
+            for (int j = 0; j < 2*point_range; j++)
+            {
+                if (j+p.y-point_range >= pointmap.rows || j+p.y-point_range < 0)
+                    continue;
+
+                //std::cout << "Point " << p << " => " << cv::Point(i+p.x-point_range, j+p.y-point_range) << std::endl;
+                pointmap.at<std::int32_t>(j+p.y-point_range, i+p.x-point_range) += 2*point_range - std::abs(point_range-i) - std::abs(point_range-j);
+            }
+        }
+    }
+
+    cv::Point highest = cv::Point(0,0);
+    std::int32_t value = 0;
+
+    for (int i = 0; i < pointmap.cols; i++)
+    {
+        for (int j = 0; j < pointmap.rows; j++)
+        {
+            std::int32_t current = pointmap.at<std::int32_t>(j, i);
+            //if (current != 0)
+                //std::cout << current << std::endl;
+
+            if (current > value)
+            {
+                value = current;
+                highest = cv::Point(i, j);
+            }
+        }
+    }
+
+    std::cout << highest << " " << value << std::endl;
+    current_goal = highest;
+    current_goal_valid = true;
 }
