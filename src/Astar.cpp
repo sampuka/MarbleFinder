@@ -100,6 +100,7 @@ std::vector<cv::Point> astar(const cv::Mat &map, const cv::Point &start, const c
            newcell.h=FLT_MAX;
            newcell.parent_i=-1;
            newcell.parent_j=-1;
+           cellDetails[i].push_back(newcell);
         }
     }
 
