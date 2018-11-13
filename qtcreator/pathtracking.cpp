@@ -111,8 +111,8 @@ void PathTracking::wheelAngSubscriber(ConstPosesStampedPtr &_msg)
     curY= sin(omegaICC*deltaTime)*(lastX-iccx)+cos(omegaICC*deltaTime)*(lastY-iccy)+iccy;
 
 
-    std::cout<<std::fixed <<std::setw(6)<<velocityLeft<<" - "<<std::setw(6)<<velocityRight
-            <<" - "<<std::setw(6)<<curX<<" - "<<std::setw(6)<<curY<<"-"<<std::setw(6)<<orientation<<std::endl;
+   // std::cout<<std::fixed <<std::setw(6)<<velocityLeft<<" - "<<std::setw(6)<<velocityRight
+     //    <<" - "<<std::setw(6)<<curX<<" - "<<std::setw(6)<<curY<<"-"<<std::setw(6)<<orientation<<std::endl;
 
 
     lastOrin = orientation;

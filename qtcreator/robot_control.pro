@@ -4,7 +4,8 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += ../src/main.cpp \
-    pathtracking.cpp
+    pathtracking.cpp \
+    marblelocator.cpp
 
 #INCLUDEPATH += ~/fuzzylite-6.0/fuzzylite/
 #LIBS += -L~/fuzzylite-6.0/fuzzylite/release/bin -lfuzzylite-static
@@ -14,4 +15,5 @@ PKGCONFIG += gazebo
 PKGCONFIG += opencv
 
 HEADERS += \
-    pathtracking.h
+    pathtracking.h \
+    marblelocator.h

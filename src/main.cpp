@@ -1,15 +1,14 @@
 #include <gazebo/gazebo_client.hh>
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/transport/transport.hh>
-
 #include <opencv2/opencv.hpp>
 #include "pathtracking.h"
-
+#include "marblelocator.h"
 #include <iostream>
 
 using namespace cv;
 
-static boost::mutex mutex;
+static boost::mutex mutex1;
 
 void statCallback(ConstWorldStatisticsPtr &_msg) {
   (void)_msg;
@@ -47,9 +46,9 @@ void cameraCallback(ConstImageStampedPtr &msg) {
   im = im.clone();
   cv::cvtColor(im, im, CV_BGR2RGB);
 
-  mutex.lock();
+  mutex1.lock();
   cv::imshow("camera", im);
-  mutex.unlock();
+  mutex1.unlock();
 }
 
 void lidarCallback(ConstLaserScanStampedPtr &msg) {
@@ -94,13 +93,14 @@ void lidarCallback(ConstLaserScanStampedPtr &msg) {
               cv::Point(10, 20), cv::FONT_HERSHEY_PLAIN, 1.0,
               cv::Scalar(255, 0, 0));
 
-  mutex.lock();
+  mutex1.lock();
   cv::imshow("lidar", im);
-  mutex.unlock();
+  mutex1.unlock();
 }
 
 int main(int _argc, char **_argv) {
 PathTracking path;
+MarbleLocator marble;
 
 
   // Load gazebo
@@ -125,6 +125,9 @@ PathTracking path;
 
   gazebo::transport::SubscriberPtr poseSubscriberLocal =
   node->Subscribe("~/pose/local/info", &PathTracking::wheelAngSubscriber, &path);
+
+  gazebo::transport::SubscriberPtr cameraSubscriberLocal =
+      node->Subscribe("~/pioneer2dx/camera/link/camera/image", &MarbleLocator::locateMables, &marble);
 
   // Publish to the robot vel_cmd topic
   gazebo::transport::PublisherPtr movementPublisher =
@@ -164,10 +167,10 @@ PathTracking path;
   while (true) {
     gazebo::common::Time::MSleep(10);
 
-    mutex.lock();
-    path.draw(scaledMap);
-    int key = cv::waitKey(1);
-    mutex.unlock();
+   mutex1.lock();
+   path.draw(scaledMap);
+   int key = cv::waitKey(1);
+   mutex1.unlock();
 
     if (key == key_esc)
       break;
@@ -186,7 +189,8 @@ PathTracking path;
       //      dir *= 0.1;
     }
 
-
+    dir = marble.returnDir();
+    speed = marble.returnSpeed();
 
     // Generate a pose
     ignition::math::Pose3d pose(double(speed), 0, 0, 0, 0, double(dir));
