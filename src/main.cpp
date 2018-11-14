@@ -5,11 +5,12 @@
 #include <gazebo/gazebo_client.hh>
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/transport/transport.hh>
-
+#include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
-
+#include<bits/stdc++.h>
 #include <iostream>
-
+using namespace std;
+using namespace cv;
 static boost::mutex mutex;
 
 void statCallback(ConstWorldStatisticsPtr &_msg) {
@@ -40,17 +41,17 @@ void poseCallback(ConstPosesStampedPtr &_msg) {
 
 void cameraCallback(ConstImageStampedPtr &msg) {
 
-  std::size_t width = msg->image().width();
-  std::size_t height = msg->image().height();
-  const char *data = msg->image().data().c_str();
-  cv::Mat im(int(height), int(width), CV_8UC3, const_cast<char *>(data));
+//  std::size_t width = msg->image().width();
+//  std::size_t height = msg->image().height();
+//  const char *data = msg->image().data().c_str();
+//  cv::Mat im(int(height), int(width), CV_8UC3, const_cast<char *>(data));
 
-  im = im.clone();
-  cv::cvtColor(im, im, CV_BGR2RGB);
+//  im = im.clone();
+//  cv::cvtColor(im, im, CV_BGR2RGB);
 
-  mutex.lock();
-  cv::imshow("camera", im);
-  mutex.unlock();
+//  mutex.lock();
+//  cv::imshow("camera", im);
+//  mutex.unlock();
 }
 
 void lidarCallback(ConstLaserScanStampedPtr &msg) {
@@ -95,127 +96,128 @@ void lidarCallback(ConstLaserScanStampedPtr &msg) {
               cv::Point(10, 20), cv::FONT_HERSHEY_PLAIN, 1.0,
               cv::Scalar(255, 0, 0));
 
-  mutex.lock();
-  cv::imshow("lidar", im);
-  mutex.unlock();
+//  mutex.lock();
+//  cv::imshow("lidar", im);
+//  mutex.unlock();
 }
 
 int main(int _argc, char **_argv) {
-  // Load gazebo
-  gazebo::client::setup(_argc, _argv);
+//  // Load gazebo
+//  gazebo::client::setup(_argc, _argv);
 
-  // Create our controller object
-  const ControllerType type = ControllerType::WorldMapper; // Switch between controllers here
-  Controller *controller = nullptr;
+//  // Create our controller object
+//  const ControllerType type = ControllerType::WorldMapper; // Switch between controllers here
+//  Controller *controller = nullptr;
 
-  // Create our node for communication
-  gazebo::transport::NodePtr node(new gazebo::transport::Node());
-  node->Init();
+//  // Create our node for communication
+//  gazebo::transport::NodePtr node(new gazebo::transport::Node());
+//  node->Init();
 
-  gazebo::transport::SubscriberPtr statSubscriber;
-  gazebo::transport::SubscriberPtr poseSubscriber;
-  gazebo::transport::SubscriberPtr cameraSubscriber;
-  gazebo::transport::SubscriberPtr lidarSubscriber;
+//  gazebo::transport::SubscriberPtr statSubscriber;
+//  gazebo::transport::SubscriberPtr poseSubscriber;
+//  gazebo::transport::SubscriberPtr cameraSubscriber;
+//  gazebo::transport::SubscriberPtr lidarSubscriber;
 
-  //Subcriber the gazebo topics to the correct methods
-  switch (type)
-  {
-  case ControllerType::WorldMapper:
-  {
-      controller = new WorldMapper;
-      break;
-  }
-  case ControllerType::FuzzyBug:
-  {
-      controller = new FuzzyBugController;
-      break;
-  }
-      //Add your controllers here
-  default:
-      break;
-  }
+//  //Subcriber the gazebo topics to the correct methods
+//  switch (type)
+//  {
+//  case ControllerType::WorldMapper:
+//  {
+//      controller = new WorldMapper;
+//      break;
+//  }
+//  case ControllerType::FuzzyBug:
+//  {
+//      controller = new FuzzyBugController;
+//      break;
+//  }
+//      //Add your controllers here
+//  default:
+//      break;
+//  }
 
-  if (type == ControllerType::Show)
-  {
-      statSubscriber = node->Subscribe("~/world_stats", statCallback);
-      poseSubscriber = node->Subscribe("~/pose/info", poseCallback);
-      cameraSubscriber = node->Subscribe("~/pioneer2dx/camera/link/camera/image", cameraCallback);
-      lidarSubscriber = node->Subscribe("~/pioneer2dx/hokuyo/link/laser/scan", lidarCallback);
-  }
-  else
-  {
-      statSubscriber = node->Subscribe("~/world_stats", &Controller::statCallback, controller);
-      poseSubscriber = node->Subscribe("~/pose/info", &Controller::poseCallback, controller);
-      cameraSubscriber = node->Subscribe("~/pioneer2dx/camera/link/camera/image", &Controller::cameraCallback, controller);
-      lidarSubscriber = node->Subscribe("~/pioneer2dx/hokuyo/link/laser/scan", &Controller::lidarCallback, controller);
-  }
+//  if (type == ControllerType::Show)
+//  {
+//      statSubscriber = node->Subscribe("~/world_stats", statCallback);
+//      poseSubscriber = node->Subscribe("~/pose/info", poseCallback);
+//      cameraSubscriber = node->Subscribe("~/pioneer2dx/camera/link/camera/image", cameraCallback);
+//      lidarSubscriber = node->Subscribe("~/pioneer2dx/hokuyo/link/laser/scan", lidarCallback);
+//  }
+//  else
+//  {
+//      statSubscriber = node->Subscribe("~/world_stats", &Controller::statCallback, controller);
+//      poseSubscriber = node->Subscribe("~/pose/info", &Controller::poseCallback, controller);
+//      cameraSubscriber = node->Subscribe("~/pioneer2dx/camera/link/camera/image", &Controller::cameraCallback, controller);
+//      lidarSubscriber = node->Subscribe("~/pioneer2dx/hokuyo/link/laser/scan", &Controller::lidarCallback, controller);
+//  }
 
-  // Publish to the robot vel_cmd topic
-  gazebo::transport::PublisherPtr movementPublisher =
-      node->Advertise<gazebo::msgs::Pose>("~/pioneer2dx/vel_cmd");
+//  // Publish to the robot vel_cmd topic
+//  gazebo::transport::PublisherPtr movementPublisher =
+//      node->Advertise<gazebo::msgs::Pose>("~/pioneer2dx/vel_cmd");
 
-  // Publish a reset of the world
-  gazebo::transport::PublisherPtr worldPublisher =
-      node->Advertise<gazebo::msgs::WorldControl>("~/world_control");
-  gazebo::msgs::WorldControl controlMessage;
-  controlMessage.mutable_reset()->set_all(true);
-  worldPublisher->WaitForConnection();
-  worldPublisher->Publish(controlMessage);
+//  // Publish a reset of the world
+//  gazebo::transport::PublisherPtr worldPublisher =
+//      node->Advertise<gazebo::msgs::WorldControl>("~/world_control");
+//  gazebo::msgs::WorldControl controlMessage;
+//  controlMessage.mutable_reset()->set_all(true);
+//  worldPublisher->WaitForConnection();
+//  worldPublisher->Publish(controlMessage);
 
-  const int key_left = 81;
-  const int key_up = 82;
-  const int key_down = 84;
-  const int key_right = 83;
-  const int key_esc = 27;
+//  const int key_left = 81;
+//  const int key_up = 82;
+//  const int key_down = 84;
+//  const int key_right = 83;
+//  const int key_esc = 27;
 
-  float speed = 0.0;
-  float dir = 0.0;
+//  float speed = 0.0;
+//  float dir = 0.0;
 
-  // Loop
-  while (true) {
-    gazebo::common::Time::MSleep(10);
+//  // Loop
+//  while (true) {
+//    gazebo::common::Time::MSleep(10);
 
-    if (type == ControllerType::Show)
-    {
-        mutex.lock();
-        int key = cv::waitKey(1);
-        mutex.unlock();
+//    if (type == ControllerType::Show)
+//    {
+//        mutex.lock();
+//        int key = cv::waitKey(1);
+//        mutex.unlock();
 
-        if (key == key_esc)
-          break;
+//        if (key == key_esc)
+//          break;
 
-        if ((key == key_up) && (speed <= 1.2f))
-          speed += 0.05;
-        else if ((key == key_down) && (speed >= -1.2f))
-          speed -= 0.05;
-        else if ((key == key_right) && (dir <= 0.4f))
-          dir += 0.05;
-        else if ((key == key_left) && (dir >= -0.4f))
-          dir -= 0.05;
-        else {
-          // slow down
-          //      speed *= 0.1;
-          //      dir *= 0.1;
-        }
-    }
-    else
-    {
-        ControlOutput ctrlout = controller->getControlOutput();
-        speed = ctrlout.speed;
-        dir = ctrlout.dir;
-    }
+//        if ((key == key_up) && (speed <= 1.2f))
+//          speed += 0.05;
+//        else if ((key == key_down) && (speed >= -1.2f))
+//          speed -= 0.05;
+//        else if ((key == key_right) && (dir <= 0.4f))
+//          dir += 0.05;
+//        else if ((key == key_left) && (dir >= -0.4f))
+//          dir -= 0.05;
+//        else {
+//          // slow down
+//          //      speed *= 0.1;
+//          //      dir *= 0.1;
+//        }
+//    }
+//    else
+//    {
+//        ControlOutput ctrlout = controller->getControlOutput();
+//        speed = ctrlout.speed;
+//        dir = ctrlout.dir;
+//    }
 
-    // Generate a pose
-    ignition::math::Pose3d pose(double(speed), 0, 0, 0, 0, double(dir));
+//    // Generate a pose
+//    ignition::math::Pose3d pose(double(speed), 0, 0, 0, 0, double(dir));
 
-    // Convert to a pose message
-    gazebo::msgs::Pose msg;
-    gazebo::msgs::Set(&msg, pose);
-    movementPublisher->Publish(msg);
-  }
+//    // Convert to a pose message
+//    gazebo::msgs::Pose msg;
+//    gazebo::msgs::Set(&msg, pose);
+//    movementPublisher->Publish(msg);
+//  }
 
-  // Make sure to shut everything down.
+//  // Make sure to shut everything down.
 
-  delete controller;
-  gazebo::client::shutdown();
+
+//  delete controller;
+//  gazebo::client::shutdown();
 }

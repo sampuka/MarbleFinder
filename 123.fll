@@ -55,6 +55,7 @@ RuleBlock: mamdani
   disjunction: Maximum
   implication: Minimum
   activation: General
+
   rule: if ObsDis is far or ObsDis is medium or ObsDis is close or ObsDis is vc then Speed is forward
 
   rule: if ObsDir is center and ObsDis is close or ObsDis is min then SteerDirection is sharpleft
