@@ -25,24 +25,25 @@ bool isUnblocked(const Mat &map,const Point &xpoint)
         return(false);
 }
 
-bool isDestination(const Mat &map, const Point &cpoint,const  Point &epoint)
+bool isDestination(const Point &cpoint,const  Point &epoint)
 {
-    if(map.at<Vec3b>(cpoint) == map.at<Vec3b>(epoint))
+    if(cpoint.x == epoint.x && cpoint.y ==epoint.y)
         return true;
     else
         return false;
 
 }
 
-double calculateHValue( const Point &cpoint,  const Point &epoint)
+double calculateHValue(int row, int col, const Point &dest)
 {
-    return((double)sqrt ((cpoint.x-epoint.x)*(cpoint.y-epoint.y)));
+    return sqrt((row-dest.x)*(row-dest.x) +
+                (col-dest.y)*(col-dest.y));
 }
 
-vector<Point> tracePath(vector<vector<cell>> cellDetails, const Point &xpoint)
+vector<cv::Point> tracePath(vector<vector<cell>> cellDetails, const Point &xpoint)
 {
-   int row= xpoint.y;
-   int col=xpoint.x;
+   int row= xpoint.x;
+   int col=xpoint.y;
    vector<Point> Pathvec;
    stack<Point> Path;
 
@@ -59,31 +60,35 @@ vector<Point> tracePath(vector<vector<cell>> cellDetails, const Point &xpoint)
     while(!Path.empty())
     {
         Point P= Path.top();
+        cout<<P<<endl;
+
         Path.pop();
         Pathvec.push_back(P);
     }
-return Pathvec;
 
+
+return Pathvec;
 }
 
-
-std::vector<cv::Point> astar(const cv::Mat &map, const cv::Point &start,const  cv::Point &end)
+vector<Point> astar(const cv::Mat &map, const cv::Point &start,const  cv::Point &end)
 {
     typedef pair<int,Point> pPair;
     vector<Point> emptyvec;
     int rows =map.rows;
     int cols =map.cols;
     if(!isValid(map,start) && !isValid(map,end))
-    {
+    {cout<<"istn a valid point"<<endl;
         return emptyvec;
     }
-    if(isUnblocked(map,start)==false || isUnblocked(map,end)==true)
-       {
+    if(isUnblocked(map,start)==false || isUnblocked(map,end)==false)
+       {cout<<"is blocked"<<endl;
         return emptyvec;
        }
-    if(isDestination(map, start,end)== true)
+    if(isDestination(start,end)== true)
     {
+        cout<<" is desitnation"<<endl;
         return emptyvec;
+
     }
     bool closedList [rows][cols];
     memset(closedList,false,sizeof(closedList));
@@ -104,8 +109,8 @@ std::vector<cv::Point> astar(const cv::Mat &map, const cv::Point &start,const  c
         }
     }
 
-    i=start.y;
-    j=start.x;
+    i=start.x;
+    j=start.y;
     cellDetails[i][j].f=0.0;
     cellDetails[i][j].g=0.0;
     cellDetails[i][j].h=0.0;
@@ -123,36 +128,17 @@ std::vector<cv::Point> astar(const cv::Mat &map, const cv::Point &start,const  c
         pPair p=*openList.begin();
 
         openList.erase(openList.begin());
-        i=p.second.y;
-        j=p.second.x;
+        i=int(p.second.x);
+        j=int(p.second.y);
         closedList[i][j]=true;
-    /*
-     Generating all the 8 successor of this cell
 
-         N.W   N   N.E
-           \   |   /
-            \  |  /
-         W----Cell----E
-              / | \
-            /   |  \
-         S.W    S   S.E
-
-     Cell-->Popped Cell (i, j)
-     N -->  North       (i-1, j)
-     S -->  South       (i+1, j)
-     E -->  East        (i, j+1)
-     W -->  West           (i, j-1)
-     N.E--> North-East  (i-1, j+1)
-     N.W--> North-West  (i-1, j-1)
-     S.E--> South-East  (i+1, j+1)
-     S.W--> South-West  (i+1, j-1)*/
 
     double gNew, hNew, fNew;
 
 
-            for(int z=-1;z<1;z++)
+            for(int z=-1;z<2;z++)
             {
-                for(int k=-1; k<1;k++)
+                for(int k=-1; k<2;k++)
                 {
                     if(z==0 && k==0)
                     {
@@ -160,38 +146,42 @@ std::vector<cv::Point> astar(const cv::Mat &map, const cv::Point &start,const  c
                     }
                         if(isValid(map,Point(i-z,j-k))==true)
                         {
-                        if(isDestination(map,Point(i-z,j-k),end)== true)
-                        {
-                            cellDetails[i-z][j-k].parent_i=i;
+                        if(isDestination(Point(i-z,j-k),end)== true)
+                        {   cellDetails[i-z][j-k].parent_i=i;
                             cellDetails[i-z][j-k].parent_j=j;
+                            cout<<"Distination is found"<<endl;;
                             foundDest= true;
-                           return tracePath(cellDetails,end);
+                            return tracePath(cellDetails,end);
+
 
                         }
-                        else if (closedList[i-z][j-k]==false && isUnblocked(map,Point(i,j)))
+                        else if (closedList[i-z][j-k]==false && isUnblocked(map,Point(i-z,j-k))==true)
                        {
                             gNew=cellDetails[i][j].g+1.0;
-                            hNew=calculateHValue(Point(i-1,j),end);
+                            hNew=calculateHValue(i-z,j-k,Point(end));
                             fNew=gNew+hNew;
 
-                       if (cellDetails[i-z][j-k].f>fNew)
-                       {
-                           openList.push_back(make_pair(fNew,Point(i-z,j-k)));
-                           cellDetails[i-z][j-k].f=fNew;
-                           cellDetails[i-z][j-k].g=gNew;
-                           cellDetails[i-z][j-k].h=hNew;
-                           cellDetails[i-z][j-k].parent_i=i;
-                           cellDetails[i-z][j-k].parent_j=j;
-                       }
+                            if (cellDetails[i-z][j-k].f>fNew)
+                                {
+                               openList.push_back(make_pair(fNew,Point(i-z,j-k)));
+                               cellDetails[i-z][j-k].f=fNew;
+                               cellDetails[i-z][j-k].g=gNew;
+                               cellDetails[i-z][j-k].h=hNew;
+                               cellDetails[i-z][j-k].parent_i=i;
+                               cellDetails[i-z][j-k].parent_j=j;
+                           }
                     }
 
                 }
             }
         }
 
-            if(foundDest==false)
-            return emptyvec;
 
     }
+    if(foundDest==false)
+    {
+    cout<<"no destination found"<<endl;
+    return emptyvec;
+   }
 }
 
