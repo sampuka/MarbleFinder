@@ -54,9 +54,12 @@ private:
     std::thread main_loop_thread;
     const float main_loop_freq = 30; // Main loop gets run this many times per second
 
-    void find_unknown();
+    void goal_update();
+    std::thread goal_update_thread;
+    const float goal_update_freq = 0.5;
     bool current_goal_valid = false;
     cv::Point current_goal = cv::Point(1, 0);
+    std::vector<cv::Point> current_goal_path;
 };
 
 #endif // WORLDMAPPER_HPP

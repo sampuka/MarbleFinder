@@ -1,5 +1,7 @@
 #include "WorldMapper.hpp"
 
+#include "astar.hpp"
+
 #include <iostream>
 
 WorldMapper::WorldMapper()
@@ -13,6 +15,8 @@ WorldMapper::WorldMapper()
     cv::namedWindow("World Map");
 
     main_loop_thread = std::thread(&WorldMapper::main_loop, this);
+
+    goal_update_thread = std::thread(&WorldMapper::goal_update, this);
 }
 
 /*
@@ -87,12 +91,12 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
     im.setTo(0);
 
     for (int i = 0; i < nranges; i++)
-    //for (int i = 0; i < 1; i++)
+        //for (int i = 0; i < 1; i++)
     {
         float angle = angle_min + i * angle_increment;
         //std::cout << "angle: " << angle << " - " << angle+dir << std::endl;
         float range = std::min(float(msg->scan().ranges(i)), range_max);
-      //    double intensity = msg->scan().intensities(i);
+        //    double intensity = msg->scan().intensities(i);
         cv::Point2f startpt(200.5f + range_min * px_per_m * std::cos(angle),
                             200.5f - range_min * px_per_m * std::sin(angle));
         cv::Point2f endpt(200.5f + range * px_per_m * std::cos(angle),
@@ -100,7 +104,7 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
         cv::line(im, startpt * 16, endpt * 16, cv::Scalar(255, 255, 255, 255), 1,
                  cv::LINE_AA, 4);
 
-      //    std::cout << angle << " " << range << " " << intensity << std::endl;
+        //    std::cout << angle << " " << range << " " << intensity << std::endl;
 
         cv::Point2f mapendpt_m(posf.x + lidar_offset * std::cos(dir) + range * std::cos(angle+dir),
                                posf.y + lidar_offset * std::sin(dir) + range * std::sin(angle+dir));
@@ -139,6 +143,8 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
     if (current_goal_valid)
     {
         cv::circle(worldMapShow, current_goal, 3, goal_color);
+        for (const cv::Point &p : current_goal_path)
+            worldMapShow.at<cv::Vec3b>(p) = goal_color;
     }
 
     cv::imshow("World Map", worldMapShow);
@@ -156,21 +162,12 @@ void WorldMapper::main_loop()
     const std::chrono::duration<long int> marble_check_interval(8000);
     std::chrono::system_clock::time_point next_marble_check = std::chrono::system_clock::now();
 
-    const std::chrono::duration<long int> goal_check_interval(2);
-    std::chrono::system_clock::time_point next_goal_check = std::chrono::system_clock::now();
-
     double last_dir = dir; // These two are used for turning around when finding marbles
     double total_dir = 0;
 
     while (1)
     {
         std::this_thread::sleep_for(std::chrono::duration<double>(1/main_loop_freq));
-
-        if (std::chrono::system_clock::now() > next_goal_check)
-        {
-            next_goal_check = std::chrono::system_clock::now() + goal_check_interval;
-            find_unknown();
-        }
 
         switch (state)
         {
@@ -195,7 +192,7 @@ void WorldMapper::main_loop()
                     if (direrror < - M_PI)
                         direrror += 2*M_PI;
 
-                    std::cout << dirgoal << " " << dir << " " << direrror << std::endl;
+                    //std::cout << dirgoal << " " << dir << " " << direrror << std::endl;
 
                     if (direrror > 0)
                         ctrlout = ControlOutput{1, 1};
@@ -240,7 +237,7 @@ void WorldMapper::main_loop()
     }
 }
 
-void WorldMapper::find_unknown()
+void WorldMapper::goal_update()
 {
     const std::vector<cv::Point> neighbors =
     {
@@ -254,96 +251,108 @@ void WorldMapper::find_unknown()
         cv::Point(0 ,-1)
     };
 
-    std::vector<cv::Point> reachable_unknowns;
-
-    for (int i = 0; i < worldMap.rows; i++)
+    while (1)
     {
-        for (int j = 0; j < worldMap.cols; j++)
+        std::this_thread::sleep_for(std::chrono::duration<double>(1/goal_update_freq));
+
+        std::vector<cv::Point> reachable_unknowns;
+
+        for (int i = 0; i < worldMap.rows; i++)
         {
-            if (worldMap.at<cv::Vec3b>(i, j) == unknown_color)
+            for (int j = 0; j < worldMap.cols; j++)
             {
-                bool has_neighbor = false;
-
-                for (const cv::Point &p : neighbors)
+                if (worldMap.at<cv::Vec3b>(i, j) == unknown_color)
                 {
-                    const cv::Point neighbor = cv::Point(j, i) + p;
+                    bool has_neighbor = false;
 
-                    if (neighbor.x < worldMap.cols &&
-                        neighbor.x >= 0 &&
-                        neighbor.y < worldMap.rows &&
-                        neighbor.y >= 0)
+                    for (const cv::Point &p : neighbors)
                     {
-                        if (worldMap.at<cv::Vec3b>(neighbor) == free_color)
+                        const cv::Point neighbor = cv::Point(j, i) + p;
+
+                        if (neighbor.x < worldMap.cols &&
+                                neighbor.x >= 0 &&
+                                neighbor.y < worldMap.rows &&
+                                neighbor.y >= 0)
                         {
-                            has_neighbor = true;
-                            break;
+                            if (worldMap.at<cv::Vec3b>(neighbor) == free_color)
+                            {
+                                has_neighbor = true;
+                                break;
+                            }
                         }
                     }
-                }
 
-                if (has_neighbor)
-                {
-                    reachable_unknowns.push_back(cv::Point(j, i));
+                    if (has_neighbor)
+                    {
+                        reachable_unknowns.push_back(cv::Point(j, i));
+                    }
                 }
             }
         }
-    }
 
-    if (reachable_unknowns.size() == 0)
-    {
-        std::cout << "Nothing left to explore" << std::endl;
-        current_goal_valid = false;
-        return;
-    }
+        if (reachable_unknowns.size() == 0)
+        {
+            std::cout << "Nothing left to explore" << std::endl;
+            current_goal_valid = false;
+            return;
+        }
 
-/*
+        /*
     for (const cv::Point &p : reachable_unknowns)
     {
         worldMap.at<cv::Vec3b>(p) = goal_color;
     }
 */
 
-    const int point_range = 20;
-    cv::Mat pointmap = cv::Mat(height, width, CV_32SC1);
-    pointmap.setTo(0);
+        const int point_range = 20;
+        cv::Mat pointmap = cv::Mat(height, width, CV_32SC1);
+        pointmap.setTo(0);
 
-    for (const cv::Point &p : reachable_unknowns)
-    {
-        for (int i = 0; i < 2*point_range; i++)
+        for (const cv::Point &p : reachable_unknowns)
         {
-            if (i+p.x-point_range >= pointmap.cols || i+p.x-point_range < 0)
-                continue;
-
-            for (int j = 0; j < 2*point_range; j++)
+            for (int i = 0; i < 2*point_range; i++)
             {
-                if (j+p.y-point_range >= pointmap.rows || j+p.y-point_range < 0)
+                if (i+p.x-point_range >= pointmap.cols || i+p.x-point_range < 0)
                     continue;
 
-                pointmap.at<std::int32_t>(j+p.y-point_range, i+p.x-point_range) += 2*point_range - std::abs(point_range-i) - std::abs(point_range-j);
+                for (int j = 0; j < 2*point_range; j++)
+                {
+                    if (j+p.y-point_range >= pointmap.rows || j+p.y-point_range < 0)
+                        continue;
+
+                    pointmap.at<std::int32_t>(j+p.y-point_range, i+p.x-point_range) += 2*point_range - std::abs(point_range-i) - std::abs(point_range-j);
+                }
             }
         }
-    }
 
-    cv::Point highest = cv::Point(0,0);
-    std::int32_t value = 0;
+        cv::Point highest = cv::Point(0,0);
+        std::int32_t value = 0;
 
-    for (int i = 0; i < pointmap.cols; i++)
-    {
-        for (int j = 0; j < pointmap.rows; j++)
+        for (int i = 0; i < pointmap.cols; i++)
         {
-            std::int32_t current = pointmap.at<std::int32_t>(j, i);
-            //if (current != 0)
+            for (int j = 0; j < pointmap.rows; j++)
+            {
+                std::int32_t current = pointmap.at<std::int32_t>(j, i);
+                //if (current != 0)
                 //std::cout << current << std::endl;
 
-            if (current > value)
-            {
-                value = current;
-                highest = cv::Point(i, j);
+                if (current > value)
+                {
+                    value = current;
+                    highest = cv::Point(i, j);
+                }
             }
         }
-    }
 
-    std::cout << highest << " " << value << std::endl;
-    current_goal = highest;
-    current_goal_valid = true;
+        std::cout << highest << " " << value << std::endl;
+        current_goal = highest;
+        current_goal_valid = true;
+
+        if (worldMap.at<cv::Vec3b>(current_goal) == free_color)
+            current_goal_path = astar(worldMap, pos, current_goal);
+
+        std::cout << "astar" << std::endl;
+        for (const cv::Point &p : current_goal_path)
+            std::cout << p << std::endl;
+    }
 }
