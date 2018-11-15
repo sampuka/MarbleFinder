@@ -1,7 +1,11 @@
 #include "astar.hpp"
+
+#include <mutex>
+#include<unordered_set>
+#include<algorithm>
+
 using namespace cv;
 using namespace std;
-
 
 struct cell
 {
@@ -72,7 +76,10 @@ vector<cv::Point> tracePath(vector<vector<cell>> cellDetails, const Point &xpoin
 
 vector<Point> astar(const cv::Mat &map, const cv::Point &start,const  cv::Point &end)
 {
+    mutex mtx;
+
     typedef pair<double,Point> pPair;
+    vector<Point> resvec;
     vector<Point> emptyvec;
     int rows =map.rows;
     int cols =map.cols;
@@ -90,7 +97,7 @@ vector<Point> astar(const cv::Mat &map, const cv::Point &start,const  cv::Point 
         return emptyvec;
 
     }
-    bool closedList [rows][cols];
+    bool closedList [cols][rows];
     memset(closedList,false,sizeof(closedList));
     int i, j;
     vector<vector<cell>> cellDetails;
@@ -117,17 +124,21 @@ vector<Point> astar(const cv::Mat &map, const cv::Point &start,const  cv::Point 
     cellDetails[i][j].parent_i=i;
     cellDetails[i][j].parent_j=j;
 
-    vector<pPair> openList;
+    auto compare = [](pair<double,Point> a, pair<double,Point> b){return a.first < b.first;};
+    set<pair<double,Point>, decltype(compare)> openList(compare);
 
-    openList.push_back(make_pair(0.0,Point(i,j)));
+    mtx.lock();
+    openList.insert((make_pair<double,Point>(0.0,Point(i,j))));
+    mtx.unlock();
 
     bool foundDest =false;
 
     while(!openList.empty())
     {
         pPair p=*openList.begin();
-
+        mtx.lock();
         openList.erase(openList.begin());
+        mtx.unlock();
         i=int(p.second.x);
         j=int(p.second.y);
         closedList[i][j]=true;
@@ -152,7 +163,8 @@ vector<Point> astar(const cv::Mat &map, const cv::Point &start,const  cv::Point 
                         cellDetails[i-z][j-k].parent_j=j;
                         cout<<"Distination is found"<<endl;;
                         foundDest= true;
-                        return tracePath(cellDetails,end);
+                        resvec =tracePath(cellDetails,end);
+                        openList.clear();
                     }
                     else if (closedList[i-z][j-k]==false && isUnblocked(map,Point(i-z,j-k))==true)
                     {
@@ -163,7 +175,9 @@ vector<Point> astar(const cv::Mat &map, const cv::Point &start,const  cv::Point 
                         if (cellDetails[i-z][j-k].f>fNew)
                         {
                             cout << ",";
-                            openList.push_back(make_pair(fNew,Point(i-z,j-k)));
+                            mtx.lock();
+                            openList.insert(pair<double,Point>(fNew,Point(i-z,j-k)));
+                            mtx.unlock();
                             cout << "." << endl;
                             cellDetails[i-z][j-k].f=fNew;
                             cellDetails[i-z][j-k].g=gNew;
@@ -179,7 +193,8 @@ vector<Point> astar(const cv::Mat &map, const cv::Point &start,const  cv::Point 
     if(foundDest==false)
     {
         cout<<"no destination found"<<endl;
-        return emptyvec;
+        resvec.clear();
     }
+    return resvec;
 }
 

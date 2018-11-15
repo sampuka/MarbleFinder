@@ -1,7 +1,9 @@
 #include "WorldMapper.hpp"
 
 #include "astar.hpp"
-
+#include <gazebo/gazebo_client.hh>
+#include <gazebo/msgs/msgs.hh>
+#include <gazebo/transport/transport.hh>
 #include <iostream>
 
 WorldMapper::WorldMapper()
@@ -347,12 +349,12 @@ void WorldMapper::goal_update()
         std::cout << highest << " " << value << std::endl;
         current_goal = highest;
         current_goal_valid = true;
-
         if (worldMap.at<cv::Vec3b>(current_goal) == free_color)
+        {
             current_goal_path = astar(worldMap, pos, current_goal);
-
-        std::cout << "astar" << std::endl;
-        for (const cv::Point &p : current_goal_path)
-            std::cout << p << std::endl;
+            std::cout << "astar" << std::endl;
+            for (const cv::Point &p : current_goal_path)
+                std::cout << p << std::endl;
+        }
     }
 }

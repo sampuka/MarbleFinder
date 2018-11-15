@@ -1,5 +1,5 @@
 TEMPLATE = app
-CONFIG += console c++11
+CONFIG += console c++17
 CONFIG -= app_bundle
 CONFIG -= qt
 
@@ -18,9 +18,9 @@ CONFIG += link_pkgconfig
 PKGCONFIG += gazebo
 PKGCONFIG += opencv
 
-unix:!macx: LIBS += /home/sampuka/fuzzylite-6.0/release/bin/libfuzzylite-static.a
+unix:!macx: LIBS += /home/thor/fuzzylite-6.0/release/bin/libfuzzylite-static.a
 
-INCLUDEPATH += /home/sampuka/fuzzylite-6.0/fuzzylite
+INCLUDEPATH += /home/thor/fuzzylite-6.0/fuzzylite
 
 INCLUDEPATH += ../include/
 
