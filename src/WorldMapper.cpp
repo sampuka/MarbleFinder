@@ -16,6 +16,16 @@ WorldMapper::WorldMapper()
     //cv::namedWindow("lidar");
     cv::namedWindow("World Map");
 
+    m_pcFLEngine = fl::FllImporter().fromFile("../123.fll");
+    std::string status;
+    if (not m_pcFLEngine->isReady(&status))
+        throw fl::Exception("[engine error] engine is not ready:n" + status, FL_AT);
+
+    m_pflObstacleDirection = m_pcFLEngine->getInputVariable("ObsDir");
+    m_pflObstacleDistance  = m_pcFLEngine->getInputVariable("ObsDis");
+    m_pflSteerDirection    = m_pcFLEngine->getOutputVariable("SteerDirection");
+    m_pflSpeed             = m_pcFLEngine->getOutputVariable("Speed");
+
     main_loop_thread = std::thread(&WorldMapper::main_loop, this);
 
     goal_update_thread = std::thread(&WorldMapper::goal_update, this);
@@ -77,8 +87,8 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
     float range_min = float(msg->scan().range_min());
     float range_max = float(msg->scan().range_max());
 
-    int sec = msg->time().sec();
-    int nsec = msg->time().nsec();
+    //int sec = msg->time().sec();
+    //int nsec = msg->time().nsec();
 
     int nranges = msg->scan().ranges_size();
     int nintensities = msg->scan().intensities_size();
@@ -93,7 +103,6 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
     im.setTo(0);
 
     for (int i = 0; i < nranges; i++)
-        //for (int i = 0; i < 1; i++)
     {
         float angle = angle_min + i * angle_increment;
         //std::cout << "angle: " << angle << " - " << angle+dir << std::endl;
@@ -126,10 +135,23 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
         }
     }
 
-    cv::circle(im, cv::Point(200, 200), 2, cv::Scalar(0, 0, 255));
-    cv::putText(im, std::to_string(sec) + ":" + std::to_string(nsec),
-                cv::Point(10, 20), cv::FONT_HERSHEY_PLAIN, 1.0,
-                cv::Scalar(255, 0, 0));
+    shortest_dist_angle = 0;
+    shortest_dist = 999;
+    for (int i = 0; i < nranges; i++)
+    {
+        float angle = angle_min + i * angle_increment;
+        float range = std::min(float(msg->scan().ranges(i)), range_max);
+        if (range < shortest_dist)
+        {
+            shortest_dist = range;
+            shortest_dist_angle = angle;
+        }
+    }
+
+    //cv::circle(im, cv::Point(200, 200), 2, cv::Scalar(0, 0, 255));
+    //cv::putText(im, std::to_string(sec) + ":" + std::to_string(nsec),
+    //           cv::Point(10, 20), cv::FONT_HERSHEY_PLAIN, 1.0,
+    //           cv::Scalar(255, 0, 0));
 
     cv::Mat worldMapShow = worldMap.clone();
     //cv::Point pos((x_pos/map_width+0.5)*width, (-y_pos/map_height+0.5)*height);
@@ -142,9 +164,9 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
                robot_color2,
                -1);
 
+    cv::circle(worldMapShow, current_goal, 3, goal_color);
     if (current_goal_valid)
     {
-        cv::circle(worldMapShow, current_goal, 3, goal_color);
         for (const cv::Point &p : current_goal_path)
             worldMapShow.at<cv::Vec3b>(p) = goal_color;
     }
@@ -156,7 +178,19 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
 
 ControlOutput WorldMapper::getControlOutput()
 {
-    return ctrlout;
+    m_pflObstacleDirection->setValue(shortest_dist_angle);
+    m_pflObstacleDistance->setValue(shortest_dist);
+    m_pcFLEngine->process();
+    float fl_dir = m_pflSteerDirection->getValue();
+    float fl_speed = m_pflSpeed->getValue();
+
+    if (shortest_dist < 1.5)
+    {
+        std::cout << fl_dir << std::endl;
+        return {fl_speed, fl_dir};
+    }
+    else
+        return ctrlout;
 }
 
 void WorldMapper::main_loop()
@@ -186,7 +220,22 @@ void WorldMapper::main_loop()
             {
                 if (current_goal_valid)
                 {
-                    float dirgoal = std::atan2(current_goal.y - pos.y, current_goal.x - pos.x);
+                    auto dist = [](const cv::Point &a, const cv::Point &b){
+
+                        return std::abs(a.x-b.x)+std::abs(a.y-b.y);
+                    };
+                    while (current_goal_path.size() > 0 && dist(pos, current_goal_path[0]) < 20)
+                        current_goal_path.erase(current_goal_path.begin());
+
+                    float dirgoal;
+
+                    if (current_goal_path.size() == 0)
+                    {
+                        dirgoal = std::atan2(current_goal.y - pos.y, current_goal.x - pos.x);
+                        current_goal_valid = false;
+                    }
+                    else
+                        dirgoal = std::atan2(current_goal_path[0].y - pos.y, current_goal_path[0].x - pos.x);
 
                     float direrror = dirgoal + dir;
                     if (direrror > M_PI)
@@ -346,15 +395,30 @@ void WorldMapper::goal_update()
             }
         }
 
-        std::cout << highest << " " << value << std::endl;
+        //std::cout << highest << " " << value << std::endl;
         current_goal = highest;
-        current_goal_valid = true;
-        if (worldMap.at<cv::Vec3b>(current_goal) == free_color)
+        current_goal_valid = false;
+
+        std::size_t x = 0;
+
+        while (!current_goal_valid && x < 25)
         {
-            current_goal_path = astar(worldMap, pos, current_goal);
-            std::cout << "astar" << std::endl;
-            for (const cv::Point &p : current_goal_path)
-                std::cout << p << std::endl;
+            for (unsigned int i = -x; i < x+1 && !current_goal_valid; i++)
+            {
+                for (unsigned int j = -x; j < x+1 && !current_goal_valid; j++)
+                {
+                    cv::Point p = highest+cv::Point(i, j);
+                    if (worldMap.at<cv::Vec3b>(p) == free_color)
+                    {
+                        current_goal_valid = true;
+                        current_goal = p;
+                    }
+                }
+            }
+            x++;
         }
+
+        if (current_goal_valid)
+            current_goal_path = astar(worldMap, pos, current_goal);
     }
 }

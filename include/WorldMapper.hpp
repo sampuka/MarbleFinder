@@ -5,6 +5,8 @@
 
 #include <opencv2/opencv.hpp>
 
+#include "fl/Headers.h"
+
 #include <chrono>
 #include <iostream>
 #include <thread>
@@ -60,6 +62,15 @@ private:
     bool current_goal_valid = false;
     cv::Point current_goal = cv::Point(1, 0);
     std::vector<cv::Point> current_goal_path;
+
+    float shortest_dist = 10;
+    float shortest_dist_angle = 0;
+
+    fl::Engine*          m_pcFLEngine;
+    fl::InputVariable*   m_pflObstacleDirection;
+    fl::InputVariable*   m_pflObstacleDistance;
+    fl::OutputVariable*  m_pflSteerDirection;
+    fl::OutputVariable*  m_pflSpeed;
 };
 
 #endif // WORLDMAPPER_HPP

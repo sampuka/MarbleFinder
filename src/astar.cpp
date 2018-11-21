@@ -64,7 +64,7 @@ vector<cv::Point> tracePath(vector<vector<cell>> cellDetails, const Point &xpoin
     while(!Path.empty())
     {
         Point P= Path.top();
-        cout<<P<<endl;
+        //cout<<P<<endl;
 
         Path.pop();
         Pathvec.push_back(P);
@@ -161,7 +161,7 @@ vector<Point> astar(const cv::Mat &map, const cv::Point &start,const  cv::Point 
                     {
                         cellDetails[i-z][j-k].parent_i=i;
                         cellDetails[i-z][j-k].parent_j=j;
-                        cout<<"Distination is found"<<endl;;
+                        //cout<<"Destination is found"<<endl;;
                         foundDest= true;
                         resvec =tracePath(cellDetails,end);
                         openList.clear();
@@ -174,11 +174,9 @@ vector<Point> astar(const cv::Mat &map, const cv::Point &start,const  cv::Point 
 
                         if (cellDetails[i-z][j-k].f>fNew)
                         {
-                            cout << ",";
                             mtx.lock();
                             openList.insert(pair<double,Point>(fNew,Point(i-z,j-k)));
                             mtx.unlock();
-                            cout << "." << endl;
                             cellDetails[i-z][j-k].f=fNew;
                             cellDetails[i-z][j-k].g=gNew;
                             cellDetails[i-z][j-k].h=hNew;
