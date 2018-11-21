@@ -5,10 +5,12 @@ InputVariable: ObsDir
  enabled: true
  range: -2.26 2.26
  lock-range: true
- term: left Ramp -0.5 -2.26
+ term: idcleft Ramp -1.5 -2.26
+ term: left Triangle -1.7 -1 -0.5
  term: cleft Triangle -0.55 -0.25 0.1
  term: cright Triangle -0.1 0.25 0.55
- term: right Ramp 0.5 2.26
+ term: right Triangle 0.5 1 1.7
+ term: idcright Ramp 1.6 2.26
 
 InputVariable: ObsDis
  enabled: true
@@ -56,6 +58,11 @@ RuleBlock: mamdani
  rule: if ObsDis is idc then SteerDirection is straight
  rule: if ObsDis is idc then Speed is forward
 
+ rule: if ObsDir is idcleft and ObsDis is bad then SteerDirection is straight
+ rule: if ObsDir is idcleft and ObsDis is bad then Speed is forward
+ rule: if ObsDir is idcleft and ObsDis is good then SteerDirection is straight
+ rule: if ObsDir is idcleft and ObsDis is good then Speed is forward
+
  rule: if ObsDir is left and ObsDis is bad then SteerDirection is right
  rule: if ObsDir is left and ObsDis is bad then Speed is forward
  rule: if ObsDir is left and ObsDis is good then SteerDirection is straight
@@ -75,3 +82,10 @@ RuleBlock: mamdani
  rule: if ObsDir is right and ObsDis is bad then Speed is forward
  rule: if ObsDir is right and ObsDis is good then SteerDirection is straight
  rule: if ObsDir is right and ObsDis is good then Speed is forward
+
+
+ rule: if ObsDir is idcright and ObsDis is bad then SteerDirection is straight
+ rule: if ObsDir is idcright and ObsDis is bad then Speed is forward
+ rule: if ObsDir is idcright and ObsDis is good then SteerDirection is straight
+ rule: if ObsDir is idcright and ObsDis is good then Speed is forward
+

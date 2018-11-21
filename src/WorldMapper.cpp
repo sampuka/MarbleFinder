@@ -184,12 +184,21 @@ ControlOutput WorldMapper::getControlOutput()
     float fl_dir = m_pflSteerDirection->getValue();
     float fl_speed = m_pflSpeed->getValue();
 
-    if (shortest_dist < 1.5)
+    const float lower = 0.7;
+    const float upper = 1.2;
+
+    float weight = (shortest_dist-lower)/(upper-lower);
+
+    if (weight < 0)
+        weight = 0;
+    else if (weight > 1)
+        weight = 1;
+
+    return
     {
-        return {fl_speed, fl_dir};
-    }
-    else
-        return ctrlout;
+        ctrlout.speed*weight+(1-weight)*fl_speed,
+        ctrlout.dir  *weight+(1-weight)*fl_dir
+    };
 }
 
 void WorldMapper::main_loop()
@@ -223,7 +232,7 @@ void WorldMapper::main_loop()
 
                         return std::abs(a.x-b.x)+std::abs(a.y-b.y);
                     };
-                    while (current_goal_path.size() > 0 && dist(pos, current_goal_path[0]) < 20)
+                    while (current_goal_path.size() > 0 && dist(pos, current_goal_path[0]) < 40)
                         current_goal_path.erase(current_goal_path.begin());
 
                     float dirgoal;
@@ -242,7 +251,7 @@ void WorldMapper::main_loop()
                     if (direrror < - M_PI)
                         direrror += 2*M_PI;
 
-                    //std::cout << dirgoal << " " << dir << " " << direrror << std::endl;
+                    //std::cout << direrror << std::endl;
 
                     if (direrror > 0)
                         ctrlout = ControlOutput{1, 1};
