@@ -16,7 +16,7 @@ WorldMapper::WorldMapper()
     //cv::namedWindow("lidar");
     cv::namedWindow("World Map");
 
-    m_pcFLEngine = fl::FllImporter().fromFile("../123.fll");
+    m_pcFLEngine = fl::FllImporter().fromFile("../avoider.fll");
     std::string status;
     if (not m_pcFLEngine->isReady(&status))
         throw fl::Exception("[engine error] engine is not ready:n" + status, FL_AT);
@@ -186,7 +186,6 @@ ControlOutput WorldMapper::getControlOutput()
 
     if (shortest_dist < 1.5)
     {
-        std::cout << fl_dir << std::endl;
         return {fl_speed, fl_dir};
     }
     else
@@ -397,28 +396,8 @@ void WorldMapper::goal_update()
 
         //std::cout << highest << " " << value << std::endl;
         current_goal = highest;
-        current_goal_valid = false;
+        current_goal_valid = true;
 
-        std::size_t x = 0;
-
-        while (!current_goal_valid && x < 25)
-        {
-            for (unsigned int i = -x; i < x+1 && !current_goal_valid; i++)
-            {
-                for (unsigned int j = -x; j < x+1 && !current_goal_valid; j++)
-                {
-                    cv::Point p = highest+cv::Point(i, j);
-                    if (worldMap.at<cv::Vec3b>(p) == free_color)
-                    {
-                        current_goal_valid = true;
-                        current_goal = p;
-                    }
-                }
-            }
-            x++;
-        }
-
-        if (current_goal_valid)
-            current_goal_path = astar(worldMap, pos, current_goal);
+        current_goal_path = astar(worldMap, pos, current_goal);
     }
 }

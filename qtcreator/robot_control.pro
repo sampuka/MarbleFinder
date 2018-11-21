@@ -33,4 +33,5 @@ HEADERS += \
     ../include/astar.hpp
 
 DISTFILES += \
-    ../123.fll
+    ../123.fll \
+    ../avoider.fll

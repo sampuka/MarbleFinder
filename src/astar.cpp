@@ -23,7 +23,7 @@ bool isValid(const Mat &map,const Point &xpoint)
 
 bool isUnblocked(const Mat &map,const Point &xpoint)
 {
-    if(map.at<Vec3b>(xpoint.y,xpoint.x)==Vec3b(255,255,255))
+    if(map.at<Vec3b>(xpoint.y,xpoint.x)!=Vec3b(0,0,0))
         return(true);
     else
         return(false);
@@ -74,9 +74,13 @@ vector<cv::Point> tracePath(vector<vector<cell>> cellDetails, const Point &xpoin
     return Pathvec;
 }
 
-vector<Point> astar(const cv::Mat &map, const cv::Point &start,const  cv::Point &end)
+vector<Point> astar(const cv::Mat &_map, const cv::Point &_start, const cv::Point &_end)
 {
     mutex mtx;
+
+    const cv::Mat map = _map.clone();
+    const cv::Point start = _start;
+    const cv::Point end = _end;
 
     typedef pair<double,Point> pPair;
     vector<Point> resvec;

@@ -1,0 +1,77 @@
+#File: avoider.fll
+Engine: Avoider
+
+InputVariable: ObsDir
+ enabled: true
+ range: -2.26 2.26
+ lock-range: true
+ term: left Ramp -0.5 -2.26
+ term: cleft Triangle -0.55 -0.25 0.1
+ term: cright Triangle -0.1 0.25 0.55
+ term: right Ramp 0.5 2.26
+
+InputVariable: ObsDis
+ enabled: true
+ range: 0 10
+ lock-range: true
+ term: bad Triangle 0 0.75 1.1
+ term: good Triangle 1 1.5 2
+ term: idc  Ramp 2 10
+
+
+OutputVariable: SteerDirection
+  enabled: true
+  range: -1.57 1.57
+  lock-range: true
+  aggregation: Maximum
+  defuzzifier: Centroid 100
+  default: 0
+  lock-previous: false
+  term: sharpright Ramp -1 -1.57
+  term: right      Triangle -1.2 -0.600 0
+  term: straight   Triangle -0.2 0.000 0.2
+  term: left       Triangle 0 0.6 1.2
+  term: sharpleft  Ramp  1 1.57
+
+OutputVariable: Speed
+  enabled: true
+  range: -1 1
+  lock-range: true
+  aggregation: Maximum
+  defuzzifier: Centroid 100
+  default: 0
+  lock-previous: false
+  term: backward Ramp  0.1 -1
+  term: stop Triangle -0.1 0.00 0.1
+  term: forward  Ramp  -0.1 1
+
+
+RuleBlock: mamdani
+  enabled: true
+  conjunction: Minimum
+  disjunction: Maximum
+  implication: Minimum
+  activation: General
+
+ rule: if ObsDis is idc then SteerDirection is straight
+ rule: if ObsDis is idc then Speed is forward
+
+ rule: if ObsDir is left and ObsDis is bad then SteerDirection is right
+ rule: if ObsDir is left and ObsDis is bad then Speed is forward
+ rule: if ObsDir is left and ObsDis is good then SteerDirection is straight
+ rule: if ObsDir is left and ObsDis is good then Speed is forward
+
+ rule: if ObsDir is cleft and ObsDis is bad then SteerDirection is sharpright
+ rule: if ObsDir is cleft and ObsDis is bad then Speed is stop
+ rule: if ObsDir is cleft and ObsDis is good then SteerDirection is right
+ rule: if ObsDir is cleft and ObsDis is good then Speed is forward
+
+ rule: if ObsDir is cright and ObsDis is bad then SteerDirection is sharpleft
+ rule: if ObsDir is cright and ObsDis is bad then Speed is stop
+ rule: if ObsDir is cright and ObsDis is good then SteerDirection is left
+ rule: if ObsDir is cright and ObsDis is good then Speed is forward
+
+ rule: if ObsDir is right and ObsDis is bad then SteerDirection is left
+ rule: if ObsDir is right and ObsDis is bad then Speed is forward
+ rule: if ObsDir is right and ObsDis is good then SteerDirection is straight
+ rule: if ObsDir is right and ObsDis is good then Speed is forward
