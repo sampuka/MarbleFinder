@@ -173,7 +173,8 @@ int main(int _argc, char **_argv) {
 
   // Loop
   while (true) {
-    gazebo::common::Time::MSleep(10);
+
+      gazebo::common::Time::MSleep(10);
 
     if (type == ControllerType::Show)
     {
