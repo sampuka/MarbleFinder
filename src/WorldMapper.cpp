@@ -1,6 +1,7 @@
 #include "WorldMapper.hpp"
 
 #include "astar.hpp"
+#include "dijkstra.hpp"
 #include <gazebo/gazebo_client.hh>
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/transport/transport.hh>
@@ -407,6 +408,8 @@ void WorldMapper::goal_update()
         current_goal = highest;
         current_goal_valid = true;
 
-        current_goal_path = astar(worldMap, pos, current_goal);
+        current_goal_path = dijkstra(worldMap, pos, current_goal);
+        for (const cv::Point &p : current_goal_path)
+            std::cout << p << std::endl;
     }
 }
