@@ -12,7 +12,8 @@ SOURCES += ../src/main.cpp \
     ../src/Brushfire.cpp \
     ../src/Controller.cpp \
     ../src/WorldMapper.cpp \
-    ../src/astar.cpp
+    ../src/astar.cpp \
+    ../src/Marblelocator.cpp
 
 CONFIG += link_pkgconfig
 PKGCONFIG += gazebo
@@ -30,7 +31,8 @@ HEADERS += \
     ../include/Brushfire.hpp \
     ../include/Controller.hpp \
     ../include/WorldMapper.hpp \
-    ../include/astar.hpp
+    ../include/astar.hpp \
+    ../include/Marblelocator.hpp
 
 DISTFILES += \
     ../123.fll \

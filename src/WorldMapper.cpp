@@ -6,6 +6,7 @@
 #include <gazebo/transport/transport.hh>
 #include <iostream>
 
+
 WorldMapper::WorldMapper()
 {
     type = ControllerType::WorldMapper;
@@ -46,12 +47,10 @@ void WorldMapper::poseCallback(ConstPosesStampedPtr &msg)
     pos.y = (-posf.y/map_height+0.5)*height;
 }
 
-/*
 void WorldMapper::cameraCallback(ConstImageStampedPtr &msg)
 {
-    (void)msg;
+    marbl.locateMables(msg);
 }
-*/
 
 void WorldMapper::drawlineuntil(const cv::Point &start, const cv::Point &end)
 {
@@ -178,31 +177,42 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
 
 ControlOutput WorldMapper::getControlOutput()
 {
-    m_pflObstacleDirection->setValue(shortest_dist_angle);
-    m_pflObstacleDistance->setValue(shortest_dist);
-    m_pcFLEngine->process();
-    float fl_dir = m_pflSteerDirection->getValue();
-    float fl_speed = m_pflSpeed->getValue();
-
-    const float lower = 0.7;
-    const float upper = 1.2;
-
-    float weight = (shortest_dist-lower)/(upper-lower);
-
-    if (weight < 0)
-        weight = 0;
-    else if (weight > 1)
-        weight = 1;
-
-    return
+    switch (state)
     {
-        ctrlout.speed*weight+(1-weight)*fl_speed,
-        ctrlout.dir  *weight+(1-weight)*fl_dir
-    };
+    case ControllerState::Exploring:
+    {
+        m_pflObstacleDirection->setValue(shortest_dist_angle);
+        m_pflObstacleDistance->setValue(shortest_dist);
+        m_pcFLEngine->process();
+        float fl_dir = m_pflSteerDirection->getValue();
+        float fl_speed = m_pflSpeed->getValue();
+
+        const float lower = 0.7;
+        const float upper = 1.2;
+
+        float weight = (shortest_dist-lower)/(upper-lower);
+
+        if (weight < 0)
+            weight = 0;
+        else if (weight > 1)
+            weight = 1;
+
+        return
+        {
+            ctrlout.speed*weight+(1-weight)*fl_speed,
+            ctrlout.dir  *weight+(1-weight)*fl_dir
+        };
+    }
+    case ControllerState::CheckingForMarbles:
+    case ControllerState::DrivingToMarble:
+        return ctrlout;
+
+    }
 }
 
 void WorldMapper::main_loop()
 {
+
     const std::chrono::duration<long int> marble_check_interval(8000);
     std::chrono::system_clock::time_point next_marble_check = std::chrono::system_clock::now();
 
@@ -213,10 +223,14 @@ void WorldMapper::main_loop()
     {
         std::this_thread::sleep_for(std::chrono::duration<double>(1/main_loop_freq));
 
+        if (marbl.marbleInSight())
+            state=ControllerState::DrivingToMarble;
+
         switch (state)
         {
         case ControllerState::Exploring:
         {
+            std::cout << "<>" << std::endl;
             if (std::chrono::system_clock::now() > next_marble_check)
             {
                 state = ControllerState::CheckingForMarbles;
@@ -267,6 +281,7 @@ void WorldMapper::main_loop()
         }
         case ControllerState::CheckingForMarbles: // cameraCallback does the actual checking
         {
+            std::cout << "=>" << std::endl;
             double diff_dir = last_dir-dir;
             //std::cout << "last_dir = " << last_dir << " dir = " << dir << std::endl;
             if (diff_dir < -M_PI)
@@ -290,14 +305,23 @@ void WorldMapper::main_loop()
         }
 
         case ControllerState::DrivingToMarble:
-            ctrlout = ControlOutput{1, 0};
+        {
+            std::cout << "--" << std::endl;
+            ctrlout = ControlOutput{marbl.returnSpeed(),marbl.returnDir()};
+            if(!marbl.marbleInSight())
+            {
+                if (!marbl.isThereMoreBlue())
+                    state=ControllerState::Exploring;
+            }
             break;
+        }
         }
     }
 }
 
 void WorldMapper::goal_update()
 {
+    int key_up= 82;
     const std::vector<cv::Point> neighbors =
     {
         cv::Point(1 ,-1),
@@ -407,6 +431,7 @@ void WorldMapper::goal_update()
         current_goal = highest;
         current_goal_valid = true;
 
-        current_goal_path = astar(worldMap, pos, current_goal);
+       current_goal_path = astar(worldMap, pos, current_goal);
+
     }
 }
