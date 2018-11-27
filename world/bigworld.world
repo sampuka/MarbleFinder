@@ -74,24 +74,25 @@
 
     </model>
 
+  <!-- Population of marbles -->
+-    <population name="marble_population">
+-      <model name="marble">
+-        <include>
+-          <static>true</static>
+-          <uri>model://marble</uri>
+-        </include>
+-      </model>
+-      <pose>0 0 0.5 0 0 0</pose>
+-      <box>
+-        <size>65 45 0.01</size>
+-      </box>
+-      <model_count>20</model_count>
+-      <distribution>
+-        <type>random</type>
+-      </distribution>
+-       </population>
 
-    <!-- Population of marbles -->
-    <population name="marble_population">
-      <model name="marble">
-        <include>
-          <static>true</static>
-          <uri>model://marble</uri>
-        </include>
-      </model>
-      <pose>0 0 0.5 0 0 0</pose>
-      <box>
-        <size>65 45 0.01</size>
-      </box>
-      <model_count>20</model_count>
-      <distribution>
-        <type>random</type>
-      </distribution>
-	</population>
+
 
 	<scene>
 		<grid>true</grid>
