@@ -432,13 +432,10 @@ void WorldMapper::goal_update()
         current_goal = highest;
         current_goal_valid = true;
 
-<<<<<<< HEAD
        current_goal_path = astar(worldMap, pos, current_goal);
 
-=======
-        current_goal_path = dijkstra(worldMap, pos, current_goal);
+//        current_goal_path = dijkstra(worldMap, pos, current_goal);
         for (const cv::Point &p : current_goal_path)
             std::cout << p << std::endl;
->>>>>>> 0c955524c10b720d94d299b9901106f2b61e81fb
     }
 }
