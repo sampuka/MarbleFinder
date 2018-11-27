@@ -1,6 +1,7 @@
 #include "Controller.hpp"
 #include "WorldMapper.hpp"
 #include "FuzzyBugController.hpp"
+#include "FuzzyTest.hpp"
 
 #include <gazebo/gazebo_client.hh>
 #include <gazebo/msgs/msgs.hh>
@@ -128,6 +129,11 @@ int main(int _argc, char **_argv) {
   case ControllerType::FuzzyBug:
   {
       controller = new FuzzyBugController;
+      break;
+  }
+  case ControllerType::FuzzyTest:
+  {
+      controller = new FuzzyTest;
       break;
   }
       //Add your controllers here

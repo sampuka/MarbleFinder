@@ -14,7 +14,7 @@ enum class ControllerType
     WorldMapper,
     WallFollower,
     FuzzyBug,
-    Test
+    FuzzyTest
 };
 
 struct ControlOutput
