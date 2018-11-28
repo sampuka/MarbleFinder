@@ -4,7 +4,7 @@
 
 FuzzyTest::FuzzyTest()
 {
-    m_pcFLEngine = fl::FllImporter().fromFile("../123.fll");
+    m_pcFLEngine = fl::FllImporter().fromFile("../avoider.fll");
     std::string status;
     if (not m_pcFLEngine->isReady(&status))
         throw fl::Exception("[engine error] engine is not ready:n" + status, FL_AT);
@@ -24,6 +24,7 @@ void FuzzyTest::lidarCallback(ConstLaserScanStampedPtr &msg)
     float range_max = float(msg->scan().range_max());
 
     int nsec = msg->time().nsec();
+    int sec = msg->time().sec();
 
     int nranges = msg->scan().ranges_size();
     int nintensities = msg->scan().intensities_size();
@@ -49,7 +50,8 @@ void FuzzyTest::lidarCallback(ConstLaserScanStampedPtr &msg)
     closest_distance = close_dist;
     closest_angle = close_angle;
 
-    of << nsec/1000000 << ',' << close_dist << '\n';
+    of << sec*1000+nsec/1000000 << ',' << close_dist << '\n';
+    of.flush();
 }
 
 ControlOutput FuzzyTest::getControlOutput()

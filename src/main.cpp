@@ -106,7 +106,7 @@ int main(int _argc, char **_argv) {
   gazebo::client::setup(_argc, _argv);
 
   // Create our controller object
-  const ControllerType type = ControllerType::WorldMapper; // Switch between controllers here
+  const ControllerType type = ControllerType::FuzzyTest; // Switch between controllers here
   Controller *controller = nullptr;
 
   // Create our node for communication
