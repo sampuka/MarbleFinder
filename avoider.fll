@@ -5,19 +5,19 @@ InputVariable: ObsDir
  enabled: true
  range: -2.26 2.26
  lock-range: true
- term: idcleft Ramp -1.5 -2.26
- term: left Triangle -1.7 -1 -0.5
+ term: idcleft Ramp -1.7 -2.26
+ term: left Triangle -1.8 -1 -0.5
  term: cleft Triangle -0.55 -0.25 0.1
  term: cright Triangle -0.1 0.25 0.55
- term: right Triangle 0.5 1 1.7
- term: idcright Ramp 1.6 2.26
+ term: right Triangle 0.5 1 1.8
+ term: idcright Ramp 1.7 2.26
 
 InputVariable: ObsDis
  enabled: true
  range: 0 10
  lock-range: true
- term: bad Triangle 0 0.75 1.1
- term: good Triangle 1 1.5 2
+ term: bad Triangle 0 0.95 1.6
+ term: good Triangle 1.4 1.7 2
  term: idc  Ramp 2 10
 
 

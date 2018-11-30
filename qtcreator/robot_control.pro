@@ -34,7 +34,7 @@ HEADERS += \
     ../include/Controller.hpp \
     ../include/WorldMapper.hpp \
     ../include/astar.hpp \
-
+    ../include/Marblelocator.hpp \
     ../include/Marblelocator.hpp
 
    # ../include/dijkstra.hpp

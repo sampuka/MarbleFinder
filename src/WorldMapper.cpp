@@ -7,6 +7,10 @@
 #include <gazebo/transport/transport.hh>
 #include <iostream>
 
+auto dist = [](const cv::Point &a, const cv::Point &b)
+{
+    return std::abs(a.x-b.x)+std::abs(a.y-b.y);
+};
 
 WorldMapper::WorldMapper()
 {
@@ -74,11 +78,6 @@ void WorldMapper::drawlineuntil(const cv::Point &start, const cv::Point &end)
 
 void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
 {
-    /*
-    if (msg->time().sec() == 0)
-        return;
-*/
-
     //  std::cout << ">> " << msg->DebugString() << std::endl;
     float angle_min = float(msg->scan().angle_min());
     //  double angle_max = msg->scan().angle_max();
@@ -198,6 +197,9 @@ ControlOutput WorldMapper::getControlOutput()
         else if (weight > 1)
             weight = 1;
 
+        if (force_no_fuzzy)
+            weight = 1;
+
         return
         {
             ctrlout.speed*weight+(1-weight)*fl_speed,
@@ -206,6 +208,7 @@ ControlOutput WorldMapper::getControlOutput()
     }
     case ControllerState::CheckingForMarbles:
     case ControllerState::DrivingToMarble:
+    default:
         return ctrlout;
 
     }
@@ -217,6 +220,12 @@ void WorldMapper::main_loop()
     const std::chrono::duration<long int> marble_check_interval(8000);
     std::chrono::system_clock::time_point next_marble_check = std::chrono::system_clock::now();
 
+    const std::chrono::duration<long int> marble_cooldown(1);
+    std::chrono::system_clock::time_point marble_cooldown_end = std::chrono::system_clock::now();
+
+    const std::chrono::duration<long int> stuck_check_interval(4);
+    std::chrono::system_clock::time_point next_stuck_check = std::chrono::system_clock::now() + stuck_check_interval;
+
     double last_dir = dir; // These two are used for turning around when finding marbles
     double total_dir = 0;
 
@@ -225,13 +234,33 @@ void WorldMapper::main_loop()
         std::this_thread::sleep_for(std::chrono::duration<double>(1/main_loop_freq));
 
         if (marbl.marbleInSight())
+        {
+            marble_cooldown_end = std::chrono::system_clock::now() + marble_cooldown;
             state=ControllerState::DrivingToMarble;
+        }
 
         switch (state)
         {
         case ControllerState::Exploring:
         {
             std::cout << "<>" << std::endl;
+
+            if (std::chrono::system_clock::now() > next_stuck_check)
+            {
+                if (dist(stuck_pos, pos) < 5)
+                {
+                    force_no_fuzzy = true;
+                    ctrlout = {-1, 0};
+                    std::this_thread::sleep_for(std::chrono::duration<double>(1));
+                    ctrlout = {0, 2};
+                    std::this_thread::sleep_for(std::chrono::duration<double>(2));
+                    force_no_fuzzy = false;
+                    next_stuck_check = std::chrono::system_clock::now() + stuck_check_interval;
+                }
+                stuck_pos = pos;
+                next_stuck_check = std::chrono::system_clock::now() + stuck_check_interval;
+            }
+
             if (std::chrono::system_clock::now() > next_marble_check)
             {
                 state = ControllerState::CheckingForMarbles;
@@ -243,10 +272,6 @@ void WorldMapper::main_loop()
             {
                 if (current_goal_valid)
                 {
-                    auto dist = [](const cv::Point &a, const cv::Point &b){
-
-                        return std::abs(a.x-b.x)+std::abs(a.y-b.y);
-                    };
                     while (current_goal_path.size() > 0 && dist(pos, current_goal_path[0]) < 40)
                         current_goal_path.erase(current_goal_path.begin());
 
@@ -282,6 +307,8 @@ void WorldMapper::main_loop()
         }
         case ControllerState::CheckingForMarbles: // cameraCallback does the actual checking
         {
+            next_stuck_check = std::chrono::system_clock::now() + stuck_check_interval;
+
             std::cout << "=>" << std::endl;
             double diff_dir = last_dir-dir;
             //std::cout << "last_dir = " << last_dir << " dir = " << dir << std::endl;
@@ -308,10 +335,9 @@ void WorldMapper::main_loop()
         case ControllerState::DrivingToMarble:
         {
             std::cout << "--" << std::endl;
-            ctrlout = ControlOutput{marbl.returnSpeed(),marbl.returnDir()};
-            if(!marbl.marbleInSight())
+            ctrlout = ControlOutput{marbl.returnSpeed(), marbl.returnDir()};
+            if(!marbl.marbleInSight() && !marbl.isThereMoreBlue() && std::chrono::system_clock::now() > marble_cooldown_end)
             {
-                if (!marbl.isThereMoreBlue())
                     state=ControllerState::Exploring;
             }
             break;
@@ -322,7 +348,6 @@ void WorldMapper::main_loop()
 
 void WorldMapper::goal_update()
 {
-    int key_up= 82;
     const std::vector<cv::Point> neighbors =
     {
         cv::Point(1 ,-1),
@@ -435,7 +460,7 @@ void WorldMapper::goal_update()
        current_goal_path = astar(worldMap, pos, current_goal);
 
 //        current_goal_path = dijkstra(worldMap, pos, current_goal);
-        for (const cv::Point &p : current_goal_path)
-            std::cout << p << std::endl;
+//        for (const cv::Point &p : current_goal_path)
+//            std::cout << p << std::endl;
     }
 }

@@ -61,8 +61,6 @@ void MarbleLocator::locateMables(ConstImageStampedPtr &msg){
         circle( im, center, 3, Scalar(0,255,0), -1, 8, 0 );
         // circle outline
         circle( im, center, radius, Scalar(0,0,255), 1, 8, 0 );
-
-        std::cout << "blue pixel: " << im.at<cv::Vec3b>(center) << std::endl;
     }
     isThereMoreBlue();
 
@@ -98,18 +96,18 @@ void MarbleLocator::centerMarble(){
     int imageCenter = 320.0/2;
     int center = cvRound(circles[closMarble][0]);
     if (!marbleInSight() || closest < 5){
-        dir = 0.3;
-        speed = 0.1;
+        dir = 0;
+        speed = 1;
 
     }
     else{
         if (center>imageCenter+10){
             dir = 0.3;
-            speed = 0.2;
+            speed = 0.5;
         }
         if (center<imageCenter-10){
             dir = -0.3;
-            speed = 0.2;
+            speed = 0.5;
         }
         if(center<imageCenter+10 && center>imageCenter-10){
             dir = 0.0;
@@ -132,22 +130,23 @@ bool MarbleLocator::isThereMoreBlue(){
     amountofbluee=0;
 
 
-    for(int i = 0; i< convIm.rows; i++){
+    for(int i = 0; i < convIm.rows; i++){
         for(int j = 0; j < convIm.cols; j++){
 
-            uchar B = im.at<Vec3b>(i,j)[0];
-            uchar G = im.at<Vec3b>(i,j)[1];
-            uchar R = im.at<Vec3b>(i,j)[2];
+            uchar B = convIm.at<Vec3b>(i,j)[0];
+            uchar G = convIm.at<Vec3b>(i,j)[1];
+            uchar R = convIm.at<Vec3b>(i,j)[2];
 
             //double LS_ratio = ((double) L) / ((double) S);
             //bool blue_pixel = (S >= 90) && (LS_ratio > 0.5) &&
                     //(LS_ratio < 3.0) && ((H <= 250) && (H >= 200));
             bool blue_pixel = B>10 && G < 10 && R < 10;
 
-            if(!blue_pixel){
+            if(!blue_pixel)
+            {
                 convIm.at<Vec3b>(i,j)[2] = 0;
-
             }
+
             if(blue_pixel)
             {
                 amountofbluee++;
@@ -155,9 +154,6 @@ bool MarbleLocator::isThereMoreBlue(){
 
         }
     }
-
-    std::cout << amountofbluee << std::endl;
-
 
     if(amountofbluee>max/10)
     {

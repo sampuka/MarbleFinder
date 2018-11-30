@@ -66,6 +66,9 @@ private:
     float shortest_dist = 10;
     float shortest_dist_angle = 0;
 
+    bool force_no_fuzzy = false;
+    cv::Point stuck_pos = cv::Point(0,0);
+
     fl::Engine*          m_pcFLEngine;
     fl::InputVariable*   m_pflObstacleDirection;
     fl::InputVariable*   m_pflObstacleDistance;
