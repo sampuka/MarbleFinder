@@ -101,39 +101,6 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
     cv::Mat im(h, w, CV_8UC3);
     im.setTo(0);
 
-    for (int i = 0; i < nranges; i++)
-    {
-        float angle = angle_min + i * angle_increment;
-        //std::cout << "angle: " << angle << " - " << angle+dir << std::endl;
-        float range = std::min(float(msg->scan().ranges(i)), range_max);
-        //    double intensity = msg->scan().intensities(i);
-        cv::Point2f startpt(200.5f + range_min * px_per_m * std::cos(angle),
-                            200.5f - range_min * px_per_m * std::sin(angle));
-        cv::Point2f endpt(200.5f + range * px_per_m * std::cos(angle),
-                          200.5f - range * px_per_m * std::sin(angle));
-        cv::line(im, startpt * 16, endpt * 16, cv::Scalar(255, 255, 255, 255), 1,
-                 cv::LINE_AA, 4);
-
-        //    std::cout << angle << " " << range << " " << intensity << std::endl;
-
-        cv::Point2f mapendpt_m(posf.x + lidar_offset * std::cos(dir) + range * std::cos(angle+dir),
-                               posf.y + lidar_offset * std::sin(dir) + range * std::sin(angle+dir));
-
-        cv::Point mapendpt((mapendpt_m.x/map_width+0.5)*width,
-                           (-mapendpt_m.y/map_height+0.5)*height);
-
-        drawlineuntil(pos + cv::Point((lidar_offset * std::cos(dir)/map_width)*width,
-                                      (lidar_offset * std::sin(dir)/map_height)*height),
-                      mapendpt);
-
-        //std::cout << cv::Point(x_pos, y_pos) << " " << mapendpt << std::endl;
-
-        if (range < range_max)
-        {
-            worldMap.at<cv::Vec3b>(mapendpt) = wall_color;
-        }
-    }
-
     shortest_dist_angle = 0;
     shortest_dist = 999;
     for (int i = 0; i < nranges; i++)
@@ -144,6 +111,42 @@ void WorldMapper::lidarCallback(ConstLaserScanStampedPtr &msg)
         {
             shortest_dist = range;
             shortest_dist_angle = angle;
+        }
+    }
+
+    if (stable && shortest_dist > 0.7)
+    {
+        for (int i = 0; i < nranges; i++)
+        {
+            float angle = angle_min + i * angle_increment;
+            //std::cout << "angle: " << angle << " - " << angle+dir << std::endl;
+            float range = std::min(float(msg->scan().ranges(i)), range_max);
+            //    double intensity = msg->scan().intensities(i);
+            cv::Point2f startpt(200.5f + range_min * px_per_m * std::cos(angle),
+                                200.5f - range_min * px_per_m * std::sin(angle));
+            cv::Point2f endpt(200.5f + range * px_per_m * std::cos(angle),
+                              200.5f - range * px_per_m * std::sin(angle));
+            cv::line(im, startpt * 16, endpt * 16, cv::Scalar(255, 255, 255, 255), 1,
+                     cv::LINE_AA, 4);
+
+            //    std::cout << angle << " " << range << " " << intensity << std::endl;
+
+            cv::Point2f mapendpt_m(posf.x + lidar_offset * std::cos(dir) + range * std::cos(angle+dir),
+                                   posf.y + lidar_offset * std::sin(dir) + range * std::sin(angle+dir));
+
+            cv::Point mapendpt((mapendpt_m.x/map_width+0.5)*width,
+                               (-mapendpt_m.y/map_height+0.5)*height);
+
+            drawlineuntil(pos + cv::Point((lidar_offset * std::cos(dir)/map_width)*width,
+                                          (lidar_offset * std::sin(dir)/map_height)*height),
+                          mapendpt);
+
+            //std::cout << cv::Point(x_pos, y_pos) << " " << mapendpt << std::endl;
+
+            if (range < range_max)
+            {
+                worldMap.at<cv::Vec3b>(mapendpt) = wall_color;
+            }
         }
     }
 
@@ -229,6 +232,10 @@ void WorldMapper::main_loop()
     double last_dir = dir; // These two are used for turning around when finding marbles
     double total_dir = 0;
 
+    bool isThereMoreBlueM1 = false;
+    bool isThereMoreBlueM2 = false;
+    bool isThereMoreBlueM3 = false;
+
     while (1)
     {
         std::this_thread::sleep_for(std::chrono::duration<double>(1/main_loop_freq));
@@ -239,27 +246,27 @@ void WorldMapper::main_loop()
             state=ControllerState::DrivingToMarble;
         }
 
+        if (std::chrono::system_clock::now() > next_stuck_check)
+        {
+            if (dist(stuck_pos, pos) < 5)
+            {
+                force_no_fuzzy = true;
+                ctrlout = {-1, 0};
+                std::this_thread::sleep_for(std::chrono::duration<double>(1));
+                ctrlout = {0, 2};
+                std::this_thread::sleep_for(std::chrono::duration<double>(2));
+                force_no_fuzzy = false;
+                next_stuck_check = std::chrono::system_clock::now() + stuck_check_interval;
+            }
+            stuck_pos = pos;
+            next_stuck_check = std::chrono::system_clock::now() + stuck_check_interval;
+        }
+
         switch (state)
         {
         case ControllerState::Exploring:
         {
             std::cout << "<>" << std::endl;
-
-            if (std::chrono::system_clock::now() > next_stuck_check)
-            {
-                if (dist(stuck_pos, pos) < 5)
-                {
-                    force_no_fuzzy = true;
-                    ctrlout = {-1, 0};
-                    std::this_thread::sleep_for(std::chrono::duration<double>(1));
-                    ctrlout = {0, 2};
-                    std::this_thread::sleep_for(std::chrono::duration<double>(2));
-                    force_no_fuzzy = false;
-                    next_stuck_check = std::chrono::system_clock::now() + stuck_check_interval;
-                }
-                stuck_pos = pos;
-                next_stuck_check = std::chrono::system_clock::now() + stuck_check_interval;
-            }
 
             if (std::chrono::system_clock::now() > next_marble_check)
             {
@@ -272,7 +279,7 @@ void WorldMapper::main_loop()
             {
                 if (current_goal_valid)
                 {
-                    while (current_goal_path.size() > 0 && dist(pos, current_goal_path[0]) < 40)
+                    while (current_goal_path.size() > 0 && dist(pos, current_goal_path[0]) < 15)
                         current_goal_path.erase(current_goal_path.begin());
 
                     float dirgoal;
@@ -335,7 +342,37 @@ void WorldMapper::main_loop()
         case ControllerState::DrivingToMarble:
         {
             std::cout << "--" << std::endl;
-            ctrlout = ControlOutput{marbl.returnSpeed(), marbl.returnDir()};
+
+            const int clear_size = 10;
+
+            if (isThereMoreBlueM3 && !isThereMoreBlueM2 && !isThereMoreBlueM1 && !marbl.isThereMoreBlue())
+            {
+                std::cout << "Cleared marble" << std::endl;
+                for (int i = -clear_size; i < clear_size; i++)
+                    for (int j = -clear_size; j < clear_size; j++)
+                        worldMap.at<cv::Vec3b>(pos.y+i, pos.x+j) = unknown_color;
+            }
+
+            isThereMoreBlueM3 = isThereMoreBlueM2;
+            isThereMoreBlueM2 = isThereMoreBlueM1;
+            isThereMoreBlueM1 = marbl.isThereMoreBlue();
+
+            if (marbl.isThereMoreBlue())
+            {
+                isThereMoreBlueM1 = true;
+                isThereMoreBlueM1 = true;
+                isThereMoreBlueM1 = true;
+            }
+
+            if (shortest_dist < 1.2)
+            {
+                ctrlout = ControlOutput{0.5, marbl.returnDir()};
+            }
+            else
+            {
+                ctrlout = ControlOutput{1, marbl.returnDir()};
+            }
+
             if(!marbl.marbleInSight() && !marbl.isThereMoreBlue() && std::chrono::system_clock::now() > marble_cooldown_end)
             {
                     state=ControllerState::Exploring;
@@ -431,6 +468,14 @@ void WorldMapper::goal_update()
 
                     pointmap.at<std::int32_t>(j+p.y-point_range, i+p.x-point_range) += 2*point_range - std::abs(point_range-i) - std::abs(point_range-j);
                 }
+            }
+        }
+
+        for (int i = 0; i < pointmap.rows; i++)
+        {
+            for (int j = 0; j < pointmap.cols; j++)
+            {
+                pointmap.at<std::int32_t>(i, j) *= std::max(1, 3+(std::abs(pos.x-j) + std::abs(pos.y-i))/-75);
             }
         }
 

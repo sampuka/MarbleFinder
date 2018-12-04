@@ -44,6 +44,7 @@ public:
 
     cv::Point2f posf; //Position in meters from centre. Taken directly from poseCallback
     double dir = 0; //Angle around up-down z-axis
+    bool stable = false; //This is only true if the robot is flat on the ground
 };
 
 #endif // CONTROLLER_HPP

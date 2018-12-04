@@ -6,7 +6,6 @@ using namespace cv;
 
 MarbleLocator::MarbleLocator()
 {
-
 }
 
 void MarbleLocator::locateMables(ConstImageStampedPtr &msg){
@@ -49,9 +48,15 @@ void MarbleLocator::locateMables(ConstImageStampedPtr &msg){
     cvtColor(convIm ,convIm, CV_BGR2GRAY);                             // convert colour to gray
     //GaussianBlur( convIm, convIm, cv::Size(9, 9), 2, 2 );            //add blur
 
-    HoughCircles( convIm, circles, CV_HOUGH_GRADIENT, 1, convIm.rows/8, 200, 20, 0, 0 );
+    cv::Mat houghinput = im.clone();
+    cv::extractChannel(im, houghinput, 0);
 
-    cvtColor(im ,im, CV_BGR2RGB);
+    //cv::imshow("Hough input", houghinput);
+
+    //HoughCircles( convIm, circles, CV_HOUGH_GRADIENT, 1, convIm.rows/8, 200, 20, 0, 0 );
+    HoughCircles( houghinput, circles, CV_HOUGH_GRADIENT, 1, houghinput.rows/8, 200, 15, 10, 0 );
+
+    cvtColor(im, im, CV_BGR2RGB);
 
     for( size_t i = 0; i < circles.size(); i++ )
     {
