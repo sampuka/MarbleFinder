@@ -31,8 +31,12 @@ do
                         mv distances.csv "../test_results/"$world"_"$i"_"$j"_dist.csv"
                         mv angles.csv "../test_results/"$world"_"$i"_"$j"_angle.csv"
 
-                        paste -d ' ' "time.csv" "../test_results/"$world"_"$i"_"*"_dist.csv" > "../test_results/"$world"_"$i"_dist.csv"
-                        paste -d ' ' "time.csv" "../test_results/"$world"_"$i"_"*"_angle.csv" > "../test_results/"$world"_"$i"_angle.csv"
 		done
+                paste -d ' ' "time.csv" "../test_results/"$world"_"$i"_"*"_dist.csv" > "../test_results/"$world"_"$i"_dist.csv"
+                paste -d ' ' "time.csv" "../test_results/"$world"_"$i"_"*"_angle.csv" > "../test_results/"$world"_"$i"_angle.csv"
+
+                rm time.csv
+                rm "../test_results/"$world"_"$i"_"*"_dist.csv"
+                rm "../test_results/"$world"_"$i"_"*"_angle.csv"
 	done
 done
