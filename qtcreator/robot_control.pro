@@ -18,9 +18,9 @@ CONFIG += link_pkgconfig
 PKGCONFIG += gazebo
 PKGCONFIG += opencv
 
-unix:!macx: LIBS += /home/thor/fuzzylite-6.0/release/bin/libfuzzylite-static.a
+unix:!macx: LIBS += /home/sampuka/fuzzylite-6.0/release/bin/libfuzzylite-static.a
 
-INCLUDEPATH += /home/thor/fuzzylite-6.0/fuzzylite
+INCLUDEPATH += /home/sampuka/fuzzylite-6.0/fuzzylite
 
 INCLUDEPATH += ../include/
 
