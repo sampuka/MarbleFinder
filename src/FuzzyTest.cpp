@@ -13,6 +13,10 @@ FuzzyTest::FuzzyTest()
     m_pflObstacleDistance  = m_pcFLEngine->getInputVariable("ObsDis");
     m_pflSteerDirection    = m_pcFLEngine->getOutputVariable("SteerDirection");
     m_pflSpeed             = m_pcFLEngine->getOutputVariable("Speed");
+
+    dist_of << "Distance[m]\n";
+    angle_of << "Angle[rad]\n";
+    time_of << "Time[ms]\n";
 }
 
 void FuzzyTest::lidarCallback(ConstLaserScanStampedPtr &msg)
@@ -50,8 +54,14 @@ void FuzzyTest::lidarCallback(ConstLaserScanStampedPtr &msg)
     closest_distance = close_dist;
     closest_angle = close_angle;
 
-    of << sec*1000+nsec/1000000 << ',' << close_dist << '\n';
-    of.flush();
+
+    time_of << sec*1000+nsec/1000000 << '\n';
+    dist_of << close_dist << '\n';
+    angle_of << close_angle << '\n';
+
+    time_of.flush();
+    dist_of.flush();
+    angle_of.flush();
 }
 
 ControlOutput FuzzyTest::getControlOutput()

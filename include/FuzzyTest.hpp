@@ -33,7 +33,9 @@ private:
     float closest_distance = 0;
     float closest_angle = 0;
 
-    std::ofstream of = std::ofstream("results.csv");
+    std::ofstream time_of = std::ofstream("time.csv");
+    std::ofstream dist_of = std::ofstream("distances.csv");
+    std::ofstream angle_of = std::ofstream("angles.csv");
 };
 
 #endif // FUZZYTEST_HPP
