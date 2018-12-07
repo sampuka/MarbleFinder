@@ -4,7 +4,8 @@ worlds[0]=door.world
 worlds[1]=moon.world
 worlds[2]=cylender.world
 worlds[3]=horseshoe.world
-
+worlds[4]=right_cornor.world
+worlds[5]=bluntangle.world
 dist=1
 
 for world in  ${worlds[*]}
