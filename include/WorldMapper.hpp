@@ -50,7 +50,7 @@ private:
 
     ControlOutput ctrlout;
 
-    ControllerState state = ControllerState::CheckingForMarbles;
+    ControllerState state = ControllerState::Exploring;
 
     void main_loop();
     std::thread main_loop_thread;

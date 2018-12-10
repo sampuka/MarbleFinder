@@ -40,8 +40,9 @@ bool isDestination(const Point &cpoint,const  Point &epoint)
 
 double calculateHValue(int row, int col, const Point &dest)
 {
-    return sqrt((row-dest.x)*(row-dest.x) +
-                (col-dest.y)*(col-dest.y));
+    return sqrt((row-dest.y)*(row-dest.y) +
+                (col-dest.x)*(col-dest.x));
+    //return abs(col-dest.x)+abs(row-dest.y);
 }
 
 vector<cv::Point> tracePath(vector<vector<cell>> cellDetails, const Point &xpoint)
@@ -172,7 +173,11 @@ vector<Point> astar(const cv::Mat &_map, const cv::Point &_start, const cv::Poin
                     }
                     else if (closedList[i-z][j-k]==false && isUnblocked(map,Point(i-z,j-k))==true)
                     {
-                        gNew=cellDetails[i][j].g+1.0;
+                        if (z*k != 0)
+                            gNew=cellDetails[i][j].g+1.5;
+                        else
+                            gNew=cellDetails[i][j].g+1.0;
+
                         hNew=calculateHValue(i-z,j-k,Point(end));
                         fNew=gNew+hNew;
 

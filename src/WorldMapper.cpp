@@ -279,7 +279,7 @@ void WorldMapper::main_loop()
             {
                 if (current_goal_valid)
                 {
-                    while (current_goal_path.size() > 0 && dist(pos, current_goal_path[0]) < 15)
+                    while (current_goal_path.size() > 0 && dist(pos, current_goal_path[0]) < 20)
                         current_goal_path.erase(current_goal_path.begin());
 
                     float dirgoal;
