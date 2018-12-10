@@ -74,5 +74,7 @@ ControlOutput FuzzyTest::getControlOutput()
     float speed = m_pflSpeed->getValue();
     float steer = m_pflSteerDirection->getValue();
 
+    std::cout << "Speed: " << speed << "\tsteer: " << steer << std::endl;
+
     return ControlOutput{speed, steer};
 }

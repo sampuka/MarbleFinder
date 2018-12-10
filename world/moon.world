@@ -34,7 +34,7 @@
 
     <!-- Pioneer2dx with camera and lidar -->
     <model name="pioneer2dx">
-      <pose>-.07073720166770291008 -.99749498660405443094 0 0 0 1.5</pose>
+      <pose>-.00398163355366662740 -4.99999841465917310105 0 0 0 1.57</pose>
       <include>
         <uri>model://pioneer2dx</uri>
       </include>

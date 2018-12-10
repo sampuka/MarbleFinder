@@ -18,7 +18,7 @@ InputVariable: ObsDis
  lock-range: true
  term: bad Triangle 0 0.75 1.1
  term: good Triangle 1 1.5 2
- term: idc  Ramp 2 10
+ term: idc  Ramp 2 2.01
 
 
 OutputVariable: SteerDirection
@@ -37,15 +37,15 @@ OutputVariable: SteerDirection
 
 OutputVariable: Speed
   enabled: true
-  range: -1 1
+  range: -1 4
   lock-range: true
   aggregation: Maximum
   defuzzifier: Centroid 100
   default: 0
   lock-previous: false
-  term: backward Ramp  0.1 -1
-  term: stop Triangle -0.1 0.00 0.1
-  term: forward  Ramp  -0.1 1
+  term: backward Rectangle  0.1 -1 1
+  term: stop Triangle -0.01 0 0.01
+  term: forward  Rectangle  0.9 1 1
 
 
 RuleBlock: mamdani
@@ -55,8 +55,23 @@ RuleBlock: mamdani
   implication: Minimum
   activation: General
 
- rule: if ObsDis is idc then SteerDirection is straight
- rule: if ObsDis is idc then Speed is forward
+ rule: if ObsDir is idcleft and ObsDis is idc then SteerDirection is straight
+ rule: if ObsDir is idcleft and ObsDis is idc then Speed is forward
+
+rule: if ObsDir is left and ObsDis is idc then SteerDirection is straight
+rule: if ObsDir is left and ObsDis is idc then Speed is forward
+
+rule: if ObsDir is cleft and ObsDis is idc then SteerDirection is straight
+rule: if ObsDir is cleft and ObsDis is idc then Speed is forward
+
+rule: if ObsDir is cright and ObsDis is idc then SteerDirection is straight
+rule: if ObsDir is cright and ObsDis is idc then Speed is forward
+
+rule: if ObsDir is right and ObsDis is idc then SteerDirection is straight
+rule: if ObsDir is right and ObsDis is idc then Speed is forward
+
+rule: if ObsDir is idcright and ObsDis is idc then SteerDirection is straight
+rule: if ObsDir is idcright and ObsDis is idc then Speed is forward
 
  rule: if ObsDir is idcleft and ObsDis is bad then SteerDirection is straight
  rule: if ObsDir is idcleft and ObsDis is bad then Speed is forward

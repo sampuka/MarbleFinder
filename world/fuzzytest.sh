@@ -7,7 +7,7 @@ worlds[3]=horseshoe.world
 worlds[4]=corner.world
 worlds[5]=bluntangle.world
 
-dist=2
+dist=5
 
 for world in  ${worlds[*]}
 do
