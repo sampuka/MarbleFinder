@@ -29,7 +29,8 @@
 	-->
 
     <include>
-      <uri>model://right_conor</uri>
+	    <uri>model://right_conor</uri>
+	    <pose>0 0 0 0 0 0</pose>
     </include>
 
     <!-- Pioneer2dx with camera and lidar -->

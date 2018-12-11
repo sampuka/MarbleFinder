@@ -29,12 +29,14 @@
 	-->
 
     <include>
-      <uri>model://moon</uri>
+	    <uri>model://moon</uri>
+      <pose>.005 5.000 0 0 0 1.57</pose>
     </include>
 
     <!-- Pioneer2dx with camera and lidar -->
     <model name="pioneer2dx">
-      <pose>-.00398163355366662740 4.99999841465917310105 0 0 0 -1.57</pose>
+      <pose>0 0 0 0 0 0</pose>
+      
       <include>
         <uri>model://pioneer2dx</uri>
       </include>

@@ -7,6 +7,8 @@ worlds[3]=horseshoe.world
 worlds[4]=corner.world
 worlds[5]=bluntangle.world
 
+#worlds[0]=cornor.world
+
 dist=5
 
 for world in  ${worlds[*]}
@@ -14,12 +16,12 @@ do
 	printf "   %s\n" $world
 	for i in -1.57 -1.04 -0.79 -0.52 -0.17 0 0.17 0.52 0.79 1.04 1.57
 	do
-		xpos=$(echo "-$dist*c($i)" | bc -l)
-		ypos=$(echo "-$dist*s($i)" | bc -l)
-		yaw=$(echo "$i" | bc -l)
+		xpos=$(echo "scale=3; $dist*c($i)" | bc -l)
+		ypos=$(echo "scale=3; $dist*s($i)" | bc -l)
+		yaw=$(echo "scale=3; $i" | bc -l)
 		line="      <pose>$xpos $ypos 0 0 0 $yaw<\\/pose>"
 		#echo $line
-		sed -i "37s/.*/$line/" $world
+		sed -i "33s/.*/$line/" $world
 		for j in 1 2 3 4 5 6 7 8 9 10
 		do
 			echo Test $j for angle $i for world $world

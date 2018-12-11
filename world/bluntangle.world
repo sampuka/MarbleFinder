@@ -14,7 +14,7 @@
 	</physics>
 
     <include>
-      <uri>model://ground_plane</uri>
+	    <uri>model://ground_plane</uri>
     </include>
 
 
@@ -29,12 +29,13 @@
 	-->
 
     <include>
-      <uri>model://bluntangle</uri>
+	    <uri>model://bluntangle</uri>
+	    <pose>0 0 0 0 0 0</pose>
     </include>
 
     <!-- Pioneer2dx with camera and lidar -->
     <model name="pioneer2dx">
-      <pose>0 4 0 0 0 4</pose>
+      <pose>0 0 0 0 0 0</pose>
       <include>
         <uri>model://pioneer2dx</uri>
       </include>
@@ -53,7 +54,7 @@
         <parent>pioneer2dx::pioneer2dx::chassis</parent>
         <child>pioneer2dx::camera::link</child>
         <axis>
-          <xyz>-1 -1 1</xyz>
+          <xyz>0 0 1</xyz>
           <limit>
             <lower>0</lower>
             <upper>0</upper>
@@ -65,7 +66,7 @@
         <parent>pioneer2dx::pioneer2dx::chassis</parent>
         <child>pioneer2dx::hokuyo::link</child>
         <axis>
-          <xyz>-1 -1 1</xyz>
+          <xyz>0 0 1</xyz>
           <limit>
             <lower>0</lower>
             <upper>0</upper>
