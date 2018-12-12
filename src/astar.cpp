@@ -40,9 +40,13 @@ bool isDestination(const Point &cpoint,const  Point &epoint)
 
 double calculateHValue(int row, int col, const Point &dest)
 {
-    return sqrt((row-dest.y)*(row-dest.y) +
+    //float dist = abs(col-dest.x)+abs(row-dest.y);
+    float dist = sqrt((row-dest.y)*(row-dest.y) +
                 (col-dest.x)*(col-dest.x));
-    //return abs(col-dest.x)+abs(row-dest.y);
+
+    //std::cout << dist << ' ' << sqrt((row-dest.y)*(row-dest.y) + (col-dest.x)*(col-dest.x)) << std::endl;
+
+    return dist;
 }
 
 vector<cv::Point> tracePath(vector<vector<cell>> cellDetails, const Point &xpoint)

@@ -221,7 +221,7 @@ void WorldMapper::main_loop()
 {
 
     const std::chrono::duration<long int> marble_check_interval(8000);
-    std::chrono::system_clock::time_point next_marble_check = std::chrono::system_clock::now();
+    std::chrono::system_clock::time_point next_marble_check = std::chrono::system_clock::now() + marble_check_interval;
 
     const std::chrono::duration<long int> marble_cooldown(1);
     std::chrono::system_clock::time_point marble_cooldown_end = std::chrono::system_clock::now();
@@ -301,9 +301,14 @@ void WorldMapper::main_loop()
                     //std::cout << direrror << std::endl;
 
                     if (direrror > 0)
-                        ctrlout = ControlOutput{1, 1};
+                        ctrlout.dir = 1;
                     else
-                        ctrlout = ControlOutput{1, -1};
+                        ctrlout.dir = -1;
+
+                    if (abs(direrror) < 1)
+                        ctrlout.speed = 1;
+                    else
+                        ctrlout.speed = 0.4;
                 }
                 else
                 {
