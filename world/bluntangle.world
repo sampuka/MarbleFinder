@@ -30,7 +30,7 @@
 
     <include>
 	    <uri>model://bluntangle</uri>
-	    <pose>0 0 0 0 0 0</pose>
+      <pose>.005 5.000 0 0 0 1.57</pose>
     </include>
 
     <!-- Pioneer2dx with camera and lidar -->

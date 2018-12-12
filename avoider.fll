@@ -37,7 +37,7 @@ OutputVariable: SteerDirection
 
 OutputVariable: Speed
   enabled: true
-  range: -1 4
+  range: -1 1
   lock-range: true
   aggregation: Maximum
   defuzzifier: Centroid 100
@@ -45,7 +45,7 @@ OutputVariable: Speed
   lock-previous: false
   term: backward Rectangle  0.1 -1 1
   term: stop Triangle -0.01 0 0.01
-  term: forward  Rectangle  0.9 1 1
+  term: forward  Rectangle  -0.1 1
 
 
 RuleBlock: mamdani
@@ -55,23 +55,8 @@ RuleBlock: mamdani
   implication: Minimum
   activation: General
 
- rule: if ObsDir is idcleft and ObsDis is idc then SteerDirection is straight
- rule: if ObsDir is idcleft and ObsDis is idc then Speed is forward
-
-rule: if ObsDir is left and ObsDis is idc then SteerDirection is straight
-rule: if ObsDir is left and ObsDis is idc then Speed is forward
-
-rule: if ObsDir is cleft and ObsDis is idc then SteerDirection is straight
-rule: if ObsDir is cleft and ObsDis is idc then Speed is forward
-
-rule: if ObsDir is cright and ObsDis is idc then SteerDirection is straight
-rule: if ObsDir is cright and ObsDis is idc then Speed is forward
-
-rule: if ObsDir is right and ObsDis is idc then SteerDirection is straight
-rule: if ObsDir is right and ObsDis is idc then Speed is forward
-
-rule: if ObsDir is idcright and ObsDis is idc then SteerDirection is straight
-rule: if ObsDir is idcright and ObsDis is idc then Speed is forward
+ rule: if ObsDis is idc then SteerDirection is straight
+ rule: if ObsDis is idc then Speed is forward
 
  rule: if ObsDir is idcleft and ObsDis is bad then SteerDirection is straight
  rule: if ObsDir is idcleft and ObsDis is bad then Speed is forward
