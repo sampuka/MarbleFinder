@@ -1,11 +1,11 @@
 #!/bin/bash
 
-worlds[0]=moon.world
-worlds[1]=door.world
+#worlds[0]=moon.world
+#worlds[1]=door.world
 worlds[2]=cylinder.world
-worlds[3]=horseshoe.world
-worlds[4]=corner.world
-worlds[5]=bluntangle.world
+#worlds[3]=horseshoe.world
+#worlds[4]=corner.world
+#worlds[5]=bluntangle.world
 
 #worlds[0]=cornor.world
 
@@ -16,8 +16,8 @@ do
 	printf "   %s\n" $world
 	for i in -1.57 -1.04 -0.79 -0.52 -0.17 0 0.17 0.52 0.79 1.04 1.57
 	do
-		xpos=$(echo "scale=3; $dist*c($i)" | bc -l)
-		ypos=$(echo "scale=3; $dist*s($i)" | bc -l)
+		xpos=$(echo "scale=3; $dist" | bc -l)
+		ypos=$(echo "scale=3; 0" | bc -l)
 		yaw=$(echo "scale=3; $i" | bc -l)
 		line="      <pose>$xpos $ypos 0 0 0 $yaw<\\/pose>"
 		#echo $line
