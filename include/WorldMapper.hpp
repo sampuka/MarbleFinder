@@ -2,7 +2,7 @@
 #define WORLDMAPPER_HPP
 
 #include "Controller.hpp"
-
+#include "Marblelocator.hpp"
 #include <opencv2/opencv.hpp>
 
 #include "fl/Headers.h"
@@ -25,7 +25,7 @@ public:
 
     //virtual void statCallback(ConstWorldStatisticsPtr &msg) override;
     virtual void poseCallback(ConstPosesStampedPtr &msg) override;
-    //virtual void cameraCallback(ConstImageStampedPtr &msg) override;
+    virtual void cameraCallback(ConstImageStampedPtr &msg) override;
     virtual void lidarCallback(ConstLaserScanStampedPtr &msg) override;
 
     virtual ControlOutput getControlOutput() override;
@@ -50,7 +50,7 @@ private:
 
     ControlOutput ctrlout;
 
-    ControllerState state = ControllerState::CheckingForMarbles;
+    ControllerState state = ControllerState::Exploring;
 
     void main_loop();
     std::thread main_loop_thread;
@@ -66,11 +66,16 @@ private:
     float shortest_dist = 10;
     float shortest_dist_angle = 0;
 
+    bool force_no_fuzzy = false;
+    cv::Point stuck_pos = cv::Point(0,0);
+
     fl::Engine*          m_pcFLEngine;
     fl::InputVariable*   m_pflObstacleDirection;
     fl::InputVariable*   m_pflObstacleDistance;
     fl::OutputVariable*  m_pflSteerDirection;
     fl::OutputVariable*  m_pflSpeed;
+
+    MarbleLocator marbl;
 };
 
 #endif // WORLDMAPPER_HPP
