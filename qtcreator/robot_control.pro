@@ -14,16 +14,15 @@ SOURCES += ../src/main.cpp \
     ../src/WorldMapper.cpp \
     ../src/astar.cpp \
     ../src/Marblelocator.cpp
-    ##../src/dijkstra.cpp
 
 
 CONFIG += link_pkgconfig
 PKGCONFIG += gazebo
 PKGCONFIG += opencv
 
-unix:!macx: LIBS += /home/thor/fuzzylite-6.0/release/bin/libfuzzylite-static.a
+unix:!macx: LIBS += /home/sampuka/fuzzylite-6.0/release/bin/libfuzzylite-static.a
 
-INCLUDEPATH += /home/thor/fuzzylite-6.0/fuzzylite
+INCLUDEPATH += /home/sampuka/fuzzylite-6.0/fuzzylite
 
 INCLUDEPATH += ../include/
 
@@ -34,10 +33,7 @@ HEADERS += \
     ../include/Controller.hpp \
     ../include/WorldMapper.hpp \
     ../include/astar.hpp \
-    ../include/Marblelocator.hpp \
     ../include/Marblelocator.hpp
-
-   # ../include/dijkstra.hpp
 
 
 DISTFILES += \

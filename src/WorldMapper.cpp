@@ -1,7 +1,6 @@
 #include "WorldMapper.hpp"
 
 #include "astar.hpp"
-#include "dijkstra.hpp"
 #include <gazebo/gazebo_client.hh>
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/transport/transport.hh>
